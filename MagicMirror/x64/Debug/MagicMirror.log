@@ -1,0 +1,24 @@
+﻿  assetimporter.cpp
+C:\VisualStudioProjects\MagicMirror\src\opengl\buffers.h(30,30): warning C4267: 'return': conversion from 'size_t' to 'int', possible loss of data
+C:\VisualStudioProjects\MagicMirror\src\opengl\buffers.h(49,30): warning C4267: 'return': conversion from 'size_t' to 'int', possible loss of data
+C:\VisualStudioProjects\MagicMirror\src\assimp\assetimporter.cpp(22,21): warning C4018: '<': signed/unsigned mismatch
+C:\VisualStudioProjects\MagicMirror\src\assimp\assetimporter.cpp(138,39): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\VisualStudioProjects\MagicMirror\src\assimp\assetimporter.cpp(139,37): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+  main.cpp
+C:\VisualStudioProjects\MagicMirror\src\opengl\buffers.h(30,30): warning C4267: 'return': conversion from 'size_t' to 'int', possible loss of data
+C:\VisualStudioProjects\MagicMirror\src\opengl\buffers.h(49,30): warning C4267: 'return': conversion from 'size_t' to 'int', possible loss of data
+C:\VisualStudioProjects\MagicMirror\src\main.cpp(97,59): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+C:\VisualStudioProjects\MagicMirror\src\main.cpp(189,18): warning C5043: 'terminate': exception specification does not match previous declaration
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\ucrt\corecrt_terminate.h(33): message : see declaration of 'terminate'
+C:\VisualStudioProjects\MagicMirror\src\main.cpp(189,6): warning C4273: 'terminate': inconsistent dll linkage
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\ucrt\corecrt_terminate.h(33,48): message : see previous definition of 'terminate'
+C:\VisualStudioProjects\MagicMirror\src\main.cpp(192,2): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\VisualStudioProjects\MagicMirror\src\main.cpp(217,22): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+C:\VisualStudioProjects\MagicMirror\src\main.cpp(218,23): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+C:\VisualStudioProjects\MagicMirror\src\main.cpp(227,8): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+C:\VisualStudioProjects\MagicMirror\src\main.cpp(228,8): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+  model.cpp
+C:\VisualStudioProjects\MagicMirror\src\opengl\buffers.h(30,30): warning C4267: 'return': conversion from 'size_t' to 'int', possible loss of data
+C:\VisualStudioProjects\MagicMirror\src\opengl\buffers.h(49,30): warning C4267: 'return': conversion from 'size_t' to 'int', possible loss of data
+  Generating Code...
+  MagicMirror.vcxproj -> C:\VisualStudioProjects\MagicMirror\x64\Debug\MagicMirror.exe
