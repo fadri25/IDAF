@@ -1,0 +1,13 @@
+newmtl Tropfenmaterial
+illum 7
+Kd 0.815686 0.815686 0.815686
+Ni 1.6
+Tr 0.51
+d 0.49
+Ka 0 0 0
+Ke 0 0 0
+Pm 0
+Pr 0.5
+Ns 16
+Ks 1 1 1
+map_Kd traene.png

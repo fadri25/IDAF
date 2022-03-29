@@ -1,0 +1,29 @@
+newmtl Bechermaterial Layer Stack
+illum 7
+Kd 0.815686 0.815686 0.815686
+Ni 1.6
+Tr 0
+d 1
+Ka 0 0 0
+Ke 0 0 0
+map_Pm kaffeebecher/Bechermaterial Layer Stack_metallic.png
+map_Pr kaffeebecher/Bechermaterial Layer Stack_roughness.png
+Ns 16
+Ks 1 1 1
+map_Kd kaffeebecher.png
+norm kaffeebecher/Bechermaterial Layer Stack_normal.jpg
+
+newmtl Deckelmaterial
+illum 7
+Kd 0.854306 0.854306 0.854306
+Ni 1.6
+Tr 0
+d 1
+Ka 0 0 0
+Ke 0 0 0
+Pm 0
+Pr 0.3849
+Ns 16
+Ks 1 1 1
+map_Kd kaffeebecher.png
+norm kaffeebecher/Deckelmaterial_normal.jpg
