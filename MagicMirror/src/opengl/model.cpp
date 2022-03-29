@@ -48,17 +48,17 @@ void Model::bind(const glm::mat4& projectionView) const {
 }
 
 // Translation um dem Vektor @arg t
-void Model::translate(const glm::vec3 t) {
+void Model::translate(const glm::vec3& t) {
 	model = glm::translate(model, t);
 }
 
 // Rotation um die Achsen @arg axis um den Winkel @arg angle
-void Model::rotate(const glm::vec3 axis, float angle) {
+void Model::rotate(const glm::vec3& axis, float angle) {
 	model = glm::rotate(model, angle, axis);
 }
 
 // Skalierung um den Vektor @arg s
-void Model::scale(const glm::vec3 s) {
+void Model::scale(const glm::vec3& s) {
 	model = glm::scale(model, s);
 }
 
