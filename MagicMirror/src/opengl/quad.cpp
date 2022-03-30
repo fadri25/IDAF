@@ -44,6 +44,8 @@ Quad::~Quad() {
 
 
 
+// Wählt Shader, Vertexarray, Vertexbuffer, Indexbuffer, 
+// Transformationsmatrix und Textur als aktive Daten für Shaderprogramm @memeber shader aus
 void Quad::bind(const glm::mat4& projectionView) const {
 	glm::mat4 mvp = projectionView * model;
 	shader->bind();
@@ -54,6 +56,10 @@ void Quad::bind(const glm::mat4& projectionView) const {
 	if (tex) 
 		tex->bind();
 
+}
+
+// Wird nie aufgerufen. Implementier nur damit es konform ist mit @class Renderable
+void Quad::bindWithMatrix(const glm::mat4& mvp) const {
 }
 
 

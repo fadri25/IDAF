@@ -34,10 +34,13 @@ Model::~Model() {
 
 }
 
+
+// Wählt Shader, Vertexarray, Vertexbuffer, Indexbuffer, 
+// Transformationsmatrix und Textur als aktive Daten für Shaderprogramm @memeber shader aus
 void Model::bind(const glm::mat4& projectionView) const {
 	shader->bind();
 	glm::mat4 mvp = projectionView * model;
-	glm::vec4 t = mvp * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+	//glm::vec4 t = mvp * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
 	//printMat(model);
 	shader->setUniformMat4("mvp", mvp);
 	
@@ -46,6 +49,19 @@ void Model::bind(const glm::mat4& projectionView) const {
 	tex->bind();
 
 }
+
+
+// Wählt Shader, Vertexarray, Vertexbuffer, Indexbuffer, 
+// und Textur  mit Transformationsmatrix @arg mvp als aktive Daten für Shaderprogramm @memeber shader aus
+void Model::bindWithMatrix(const glm::mat4& mvp) const {
+	shader->bind();
+	shader->setUniformMat4("mvp", mvp);
+
+	vb.bind();
+	ib.bind();
+	tex->bind();
+}
+
 
 // Translation um dem Vektor @arg t
 void Model::translate(const glm::vec3& t) {

@@ -5,6 +5,8 @@
 #include <GLFW/glfw3.h>
 #include <opencv2/core.hpp>
 
+#include <gtx/transform.hpp>
+#include <gtc/matrix_transform.hpp>
 
 #include "opengl/vertex.h"
 #include "opengl/window.h"
@@ -27,6 +29,7 @@
 
 #include "deltatime.h"
 #include "fileio.h"
+#include "timer.h"
 
 #include <imgui/imgui.h>
 #include <imgui/imgui_impl_opengl3.h>
@@ -266,10 +269,13 @@ int main() {
 		return 0;
 	}
 	
-
+	std::vector<cv::Point> facePoints;
+	//cv::Point facePos;
+	
 	//cv::namedWindow("w");
 
 	while (running) {
+		Timer timer("main loop");
 
 		cap >> frame;
 		if (frame.empty()) {
@@ -280,7 +286,7 @@ int main() {
 		cv::flip(frame, frame, 1);
 	
 
-		while ((float)delta >= 1.0f) {
+		if ((float)delta >= 1.0f) {
 			//printf("fps = %i\n", frames);
 			//printf("delta = %f\n", (float)delta);
 			//printf("frametime = %f\n", delta.getDelta());
@@ -312,12 +318,17 @@ int main() {
 
 		// Detect faces in the scaled image
 		faceCascade.detectMultiScale(smallImg, faces, 1.1, 5, 0, cv::Size(10, 10));
-		cv::Point facePos;
+		if (facePoints.size() > 0) {
+			facePoints.erase(facePoints.begin(), facePoints.end());
+		}
+		facePoints.reserve(faces.size());
+
 
 		cv::Mat smallImgROI;
 		cv::Scalar blue = cv::Scalar(255, 0, 0);
 		cv::Scalar green = cv::Scalar(0, 255, 0);
 		cv::Scalar red = cv::Scalar(0, 0, 255);
+
 		// Iterate through rectangles around faces in the image
 		for (size_t i = 0; i < faces.size(); i++) {
 			cv::Rect r = faces[i];
@@ -335,10 +346,10 @@ int main() {
 
 			cv::rectangle(frame, cv::Point(scaledUp.x, scaledUp.y), cv::Point(scaledUp.width, scaledUp.height), blue, 3, 8, 0);
 
-			//facePos.x = (scaledUp.x + (int) ((float) scaledUp.width * 0.5f));
-			//facePos.y = (scaledUp.y + (int) ((float) scaledUp.height * 0.5f));
+			cv::Point facePos;
 			facePos.x = (scaledUp.x + (scaledUp.width - scaledUp.x) / 2);
 			facePos.y = (scaledUp.y + (scaledUp.height - scaledUp.y) / 2);
+			facePoints.emplace_back(facePos);
 
 			// Copy section where the face is in the original image
 			smallImgROI = smallImg(r);
@@ -366,8 +377,20 @@ int main() {
 		}
 
 
+		std::vector<glm::mat4> matrices;
+		matrices.reserve(facePoints.size());
+		for (cv::Point& p : facePoints) {
+			//printf("facePos: %i %i\n", p.x, p.y);
+			glm::vec3 endPos = convertToGLCoords(p.x, p.y);
+			float inverseScale = 1.0f / scale;
+			glm::vec3 translation(endPos.x* inverseScale* (distToFace) * 0.45f, endPos.y* inverseScale* (distToFace) * 0.45f, 0.0f);
+			glm::mat4 m(1.0f);
+			m = glm::scale(m, {scale, scale, scale} );
+			m = glm::translate(m, translation);
+			matrices.push_back(m);
+		}
 	
-		if (facePos.x != 0.0f && facePos.y != 0.0f) {
+		/*if (facePos.x != 0.0f && facePos.y != 0.0f) {
 			model->resetTransformationMatrix();
 			model->scale({ scale, scale, scale });
 			glm::vec3 endPos = convertToGLCoords(facePos.x, facePos.y);
@@ -382,7 +405,7 @@ int main() {
 		else {
 			model->resetTransformationMatrix();
 			model->scale({ scale, scale, scale });
-		}
+		}*/
 
 
 		//cv::line(frame, cv::Point(midX, 0), cv::Point(midX, frameHeight), 1, 8, 0);
@@ -392,11 +415,19 @@ int main() {
 		Texture* tex = Texture::createTextureFromData(frameWidth, frameHeight, GL_BGR, frame.data);
 		quad.setTexture(tex);
 
+
 		Renderer::beginScene();
+		Renderer::clear();
 		Renderer::submit(&quad);
-		Renderer::submit(model);
 		Renderer::render();
 		Renderer::endScene();
+
+		Renderer::beginScene();
+		Renderer::submitMatrices(matrices);
+		Renderer::submit(model);
+		Renderer::renderModelsWithMatrices();
+		Renderer::endScene();
+		Renderer::flush();
 		frames++;
 
 	

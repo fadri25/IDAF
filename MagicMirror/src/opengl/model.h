@@ -9,7 +9,7 @@
 #include "renderable.h"
 
 
-// Klasse welche ein 3D-Modell repräsentiert
+// Repräsentiert ein 3D-Modell
 // Shaders dürfen nicht gelöscht werden in dem Destructor, da sich mehrere
 // modelle einen Shader teilen können
 class Model : public Renderable {
@@ -29,6 +29,8 @@ public:
 	~Model();
 
 	void bind(const glm::mat4& projectionView) const override;
+	void bindWithMatrix(const glm::mat4& mvp) const override;
+
 
 	void translate(const glm::vec3& t);
 	void rotate(const glm::vec3& axis, float angle);

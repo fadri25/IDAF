@@ -7,9 +7,12 @@
 
 Camera* Renderer::cam;
 
+
 const int Renderer::MAX_MODELS = 10;
+std::vector<glm::mat4> Renderer::matrices;
 Renderable** Renderer::renderables;
 int Renderer::currentIndex = 0;
+
 bool Renderer::inScene = false;
 
 
@@ -23,6 +26,13 @@ void Renderer::init(Camera* camera) {
 void Renderer::terminate() {
 	delete[] renderables;
 }
+
+// Fügt eine Liste  von Transformationsmatrizen die Liste des Renderers ein
+void Renderer::submitMatrices(const std::vector<glm::mat4>& m) {
+	matrices.reserve(m.size());
+	matrices.insert(matrices.begin(), m.begin(), m.end());
+}
+
 
 // Fügt ein 3D-Modell in die Array der zu rendernden Modelle ein
 void Renderer::submit(Renderable* r) {
@@ -46,13 +56,18 @@ void Renderer::beginScene() {
 	inScene = true;
 }
 
+// Leert das aktuelle Bild
+void Renderer::clear() {
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+
+
 // Macht für jedes Modell einen draw call an den Grafikprozessor
 void Renderer::render() {
 	if (!inScene) {
 		return;
 	}
 
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glm::mat4 pv = cam->getViewProjection();
 	for (int i = 0; i < currentIndex; i++) {
@@ -61,6 +76,25 @@ void Renderer::render() {
 	}
 }
 
+// Macht für jedes Modell einen draw call für jede Transformationsmatrix in @static matrices
+void Renderer::renderModelsWithMatrices() {
+	if (!inScene) {
+		return;
+	}
+
+	
+	glm::mat4 pv = cam->getViewProjection();
+	for (int i = 0; i < matrices.size(); i++) {
+		glm::mat4 mvp = pv * matrices[i];
+
+		for (int j = 0; j < currentIndex; j++) {
+			renderables[j]->bindWithMatrix(mvp);
+			glDrawElements(GL_TRIANGLES, renderables[j]->getCount(), GL_UNSIGNED_INT, nullptr);
+		}
+	}
+}
+
+
 // Leert die Liste der Modelle und beendet die Szene
 void Renderer::flush() {
 	for (int i = 0; i < MAX_MODELS; i++) {
@@ -68,6 +102,9 @@ void Renderer::flush() {
 	}
 	if (inScene) {
 		endScene();
+	}
+	if (matrices.size() > 0) {
+		matrices.erase(matrices.begin(), matrices.end());
 	}
 }
 

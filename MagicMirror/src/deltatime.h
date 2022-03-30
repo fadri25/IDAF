@@ -1,12 +1,16 @@
 #pragma once
 
 #include <ctime>
+#include <chrono>
 
 // Deltazeit zwischen Frames
 class DeltaTime {
 
-	std::clock_t last;
-	std::clock_t now;
+	std::chrono::steady_clock::time_point last;
+	std::chrono::steady_clock::time_point now;
+
+	//std::clock_t last;
+	//std::clock_t now;
 	double delta = 0.0;
 
 public:

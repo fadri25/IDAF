@@ -3,7 +3,9 @@
 
 
 DeltaTime::DeltaTime() {
-	last = std::clock();
+	
+	last = std::chrono::steady_clock::now();
+	//last = std::clock();
 }
 
 DeltaTime::~DeltaTime() {
@@ -12,14 +14,17 @@ DeltaTime::~DeltaTime() {
 
 // Berechnet die Deltazeit zwischen frames
 void DeltaTime::update() {
-	now = std::clock();
-	delta += (now - last) / 1000.0;
+	now = std::chrono::steady_clock::now();
+	delta += std::chrono::duration<double, std::milli>(now - last).count() / 1000.0;
 	last = now;
+	/*now = std::clock();
+	delta += (now - last) / 1000.0;
+	last = now;*/
 }
 
 // Gibt aktuelle Deltazeit an aufrufer zurück
 float DeltaTime::getDelta() const {
-	return (float)( (std::clock() - last) / 1000.0);
+	return (float)std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - last).count() / 1000.0;
 }
 
 
