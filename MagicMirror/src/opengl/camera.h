@@ -12,6 +12,8 @@ class Camera {
 	bool locked = false;
 	float aspect = 0.0f;
 	float fov = 0.0f;
+	float zDist = 0.0f;
+	float near = 0.0f;
 
 public:
 	Camera();
@@ -32,4 +34,6 @@ public:
 	inline glm::mat4 getProjection() const { return projection; }
 	inline glm::mat4 getViewProjection() const { return projection * view; }
 	inline float getAspectRatio() const { return aspect; }
+	inline float getZdistance() const { return zDist; }
+	inline float getNear() const { return near; }
 };

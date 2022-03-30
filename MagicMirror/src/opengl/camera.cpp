@@ -7,7 +7,7 @@ Camera::Camera() {
 
 }
 
-Camera::Camera(float fov, float aspect, float near, float far) : fov(fov), aspect(aspect) {
+Camera::Camera(float fov, float aspect, float near, float far) : fov(fov), aspect(aspect), near(near) {
 	projection = glm::perspective(glm::radians(fov), aspect, near, far);
 	//projection = glm::ortho(-1.0f * aspect, 1.0f * aspect, -1.0f, 1.0f, 0.001f, 1000.0f);
 	view = glm::mat4(1.0f);
@@ -24,6 +24,7 @@ void Camera::translate(const glm::vec3& t) {
 	
 	if (locked) return;
 	
+	zDist += t.z;
 	view = glm::translate(view, t);
 }
 

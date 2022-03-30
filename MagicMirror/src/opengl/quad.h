@@ -30,9 +30,9 @@ public:
 
 	void bind(const glm::mat4& projectionView) const override;
 
-	void translate(const glm::vec3 t);
-	void rotate(const glm::vec3 axis, float angle);
-	void scale(const glm::vec3 s);
+	void translate(const glm::vec3& t);
+	void rotate(const glm::vec3& axis, float angle);
+	void scale(const glm::vec3& s);
 
 	int getCount() const override;
 

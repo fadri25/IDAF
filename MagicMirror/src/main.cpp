@@ -67,17 +67,17 @@ void keyFunc(GLFWwindow* window, int key, int scan, int action, int mods) {
 		}
 
 		if (key == GLFW_KEY_DOWN) {
-			model->translate({ 0.0f, -0.5f, 0.0f });
+			model->translate({ 0.0f, -0.1f, 0.0f});
 		}
 		else if (key == GLFW_KEY_UP) {
-			model->translate({ 0.0f, 0.5f, 0.0f });
+			model->translate({ 0.0f, 0.1f, 0.0f });
 		}
 
 		if (key == GLFW_KEY_RIGHT) {
-			model->translate({ 0.5f, 0.0f, 0.0f });
+			model->translate({ 0.1f, 0.0f, 0.0f });
 		}
 		else if (key == GLFW_KEY_LEFT) {
-			model->translate({ -0.5f, 0.0f, 0.0f });
+			model->translate({ -0.1f, 0.0f, 0.0f });
 		}
 
 		if (key == GLFW_KEY_K) {
@@ -159,11 +159,11 @@ glm::vec3 convertToGLCoords(int srcX, int srcY) {
 	if (srcY > midY) {
 
 		int temp = srcY - midY;
-		coords.y = (float)temp / (float)midY;
+		coords.y = -((float)temp / (float)midY);
 	}
 	else if (srcY < midY) {
 		int temp = midY - srcY;
-		coords.y = -((float)temp / (float)midY);
+		coords.y = ((float)temp / (float)midY);
 	}
 	else {
 		coords.y = 0.0f;
@@ -213,6 +213,9 @@ int main() {
 
 
 	cv::VideoCapture cap(0);
+	cap.set(cv::CAP_PROP_FRAME_WIDTH, 1080);
+	cap.set(cv::CAP_PROP_FRAME_HEIGHT, 720);
+
 	
 	frameWidth = cap.get(cv::CAP_PROP_FRAME_WIDTH);
 	frameHeight = cap.get(cv::CAP_PROP_FRAME_HEIGHT);
@@ -227,36 +230,55 @@ int main() {
 	int x = (float) frameWidth * 0.75f;
 	int y = (float) frameHeight * 0.75f;
 	glm::vec3 pos = convertToGLCoords( x, y );
-	//glm::vec4 translation = getScreenSpaceCoordinates(pos.x, pos.y);
 	float scale = 0.05f;
-	//model->translate({translation.x, translation.y, translation.z});
-	//printf("translation: %f %f %f", translation.x, translation.y, translation.z);
-	//model->scale({scale, scale, scale});
-	//model->translate({ 2.5f, 2.5f, 0.0f});
+	model->scale({scale, scale, scale});
+	//model->translate({ 4.3f * 0.5f, 2.95f * 0.5f, 0.0f});
 
-	
-	/*
-	float d = camera->getDistanceToProjectionPlane((float)window.getWidth());
-	glm::mat4 vp = camera->getViewProjection();
-	glm::vec4 origin = vp * glm::mat4(1.0f) * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+	float near = camera->getNear();
+	float dist = camera->getZdistance();
+	float d2 = dist - near;
+	float distToFace = 10.0f + near;
 
-	glm::vec3 translation;
-	translation.x = pos.x * (d + origin.z + 5.0f) / d;
-	float k = translation.x / pos.x;
-	translation.y = pos.y * k;
-	*/
+	// IMPORTANT!!!! viewport right: 4.3f, left: -4.3f, top: 2.9f, bottom: -2.9f
+
+	//glm::vec3 translation(pos.x * 4.3f * d2 / dist, pos.y * 2.9f * d2 / dist, 0.0f);
 	//model->translate(translation);
 
 	Quad quad(1.0f * camera->getAspectRatio(), 1.0f, &shader);
-	quad.translate({ 0.0, 0.0, -10.0f});
-	quad.scale({ 8.7f, 8.7f, 0.0f });
+	quad.translate({ 0.0f, 0.0f, -10.0f });
+	quad.scale({ 8.7f, 8.7f, 0.0f }); // 8.7f
+
+	cv::CascadeClassifier faceCascade;
+	faceCascade.load("haarcascades/haarcascade_frontalface_default.xml");
+
+	if (faceCascade.empty()) {
+		printf("failed to load frontal face haarcascade\n");
+		__debugbreak();
+		return 0;
+	}
+
+	cv::CascadeClassifier eyeCascade;
+	eyeCascade.load("haarcascades/haarcascade_eye.xml");
+
+	if (eyeCascade.empty()) {
+		printf("failed to load frontal eye haarcascade\n");
+		__debugbreak();
+		return 0;
+	}
 	
+
+	//cv::namedWindow("w");
 
 	while (running) {
 
 		cap >> frame;
-		Texture* tex = Texture::createTextureFromData(frameWidth, frameHeight, GL_BGR, frame.data);
-		quad.setTexture(tex); 
+		if (frame.empty()) {
+			printf("empty frame");
+			continue;
+		}
+
+		cv::flip(frame, frame, 1);
+	
 
 		while ((float)delta >= 1.0f) {
 			//printf("fps = %i\n", frames);
@@ -268,6 +290,107 @@ int main() {
 		delta.update();
 		window.pollEvents();
 
+
+		// opencv
+		std::vector<cv::Rect> faces;
+		std::vector<cv::Rect> eyes;
+
+		// Create empyt image for grayscale and down sized version of original image
+		cv::Mat gray, smallImg;
+
+		// Convert image to grayscale
+		cv::cvtColor(frame, gray, cv::COLOR_BGR2GRAY);
+		// Scale value
+		double cvScale = 2.0;
+		double fx = 1 / cvScale;
+
+		// Resize the grayscale mmage 
+		cv::resize(gray, smallImg, cv::Size(), fx, fx, cv::INTER_LINEAR);
+		cv::equalizeHist(smallImg, smallImg);
+
+
+
+		// Detect faces in the scaled image
+		faceCascade.detectMultiScale(smallImg, faces, 1.1, 5, 0, cv::Size(10, 10));
+		cv::Point facePos;
+
+		cv::Mat smallImgROI;
+		cv::Scalar blue = cv::Scalar(255, 0, 0);
+		cv::Scalar green = cv::Scalar(0, 255, 0);
+		cv::Scalar red = cv::Scalar(0, 0, 255);
+		// Iterate through rectangles around faces in the image
+		for (size_t i = 0; i < faces.size(); i++) {
+			cv::Rect r = faces[i];
+
+			cv::Rect scaledUp;
+			scaledUp.x = cvRound(r.x * cvScale);
+			scaledUp.y = cvRound(r.y * cvScale);
+			scaledUp.width = cvRound((r.x + r.width - 1) * cvScale);
+			scaledUp.height = cvRound((r.y + r.height - 1) * cvScale);
+
+			// Draw a rectangle around the face
+			/*cv::rectangle(frame, cv::Point(cvRound(r.x * scale), cvRound(r.y * scale)),
+					cv::Point(cvRound((r.x + r.width - 1) * scale),
+					cvRound((r.y + r.height - 1) * scale)), color, 3, 8, 0);*/
+
+			cv::rectangle(frame, cv::Point(scaledUp.x, scaledUp.y), cv::Point(scaledUp.width, scaledUp.height), blue, 3, 8, 0);
+
+			//facePos.x = (scaledUp.x + (int) ((float) scaledUp.width * 0.5f));
+			//facePos.y = (scaledUp.y + (int) ((float) scaledUp.height * 0.5f));
+			facePos.x = (scaledUp.x + (scaledUp.width - scaledUp.x) / 2);
+			facePos.y = (scaledUp.y + (scaledUp.height - scaledUp.y) / 2);
+
+			// Copy section where the face is in the original image
+			smallImgROI = smallImg(r);
+
+			eyeCascade.detectMultiScale(smallImgROI, eyes, 1.1, 3, 0 | cv::CASCADE_SCALE_IMAGE, cv::Size(1, 1), cv::Size(30, 30));
+
+			// Draw circles around eyes
+			for (size_t j = 0; j < eyes.size(); j++) {
+
+				cv::Rect nr = eyes[j];
+				scaledUp.x = cvRound((r.x + nr.x) * cvScale);
+				scaledUp.y = cvRound((r.y + nr.y) * cvScale);
+				scaledUp.width = cvRound((r.x + nr.x + nr.width - 1) * cvScale);
+				scaledUp.height = cvRound((r.y + nr.y + nr.height - 1) * cvScale);
+				/*
+				center.x = cvRound((r.x + nr.x + nr.width * 0.5) * scale);
+				center.y = cvRound((r.y + nr.y + nr.height * 0.5) * scale);
+				radius = cvRound((nr.width + nr.height) * 0.25 * scale);
+				circle(frame, center, radius, color, 3, 8, 0);
+				*/
+
+				cv::rectangle(frame, cv::Point(scaledUp.x, scaledUp.y), cv::Point(scaledUp.width, scaledUp.height), green, 3, 8, 0);
+			
+			}
+		}
+
+
+	
+		if (facePos.x != 0.0f && facePos.y != 0.0f) {
+			model->resetTransformationMatrix();
+			model->scale({ scale, scale, scale });
+			glm::vec3 endPos = convertToGLCoords(facePos.x, facePos.y);
+
+			float inverseScale = 1.0f / scale;
+
+			printf("facePos: %i %i\n", facePos.x, facePos.y);
+			printf("midXY: %i %i", midX, midY);
+			glm::vec3 translation(endPos.x * inverseScale * (distToFace) * 0.45f, endPos.y * inverseScale * (distToFace) * 0.45f, 0.0f);
+			model->translate(translation);
+		}
+		else {
+			model->resetTransformationMatrix();
+			model->scale({ scale, scale, scale });
+		}
+
+
+		//cv::line(frame, cv::Point(midX, 0), cv::Point(midX, frameHeight), 1, 8, 0);
+		//cv::line(frame, cv::Point(0, midY), cv::Point(frameWidth, midY), 1, 8, 0);
+		//cv::imshow("w", frame);
+
+		Texture* tex = Texture::createTextureFromData(frameWidth, frameHeight, GL_BGR, frame.data);
+		quad.setTexture(tex);
 
 		Renderer::beginScene();
 		Renderer::submit(&quad);

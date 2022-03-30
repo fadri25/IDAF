@@ -38,7 +38,7 @@ void Model::bind(const glm::mat4& projectionView) const {
 	shader->bind();
 	glm::mat4 mvp = projectionView * model;
 	glm::vec4 t = mvp * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-	printMat(model);
+	//printMat(model);
 	shader->setUniformMat4("mvp", mvp);
 	
 	vb.bind();
@@ -49,6 +49,7 @@ void Model::bind(const glm::mat4& projectionView) const {
 
 // Translation um dem Vektor @arg t
 void Model::translate(const glm::vec3& t) {
+	//glm::vec3 trans = glm::vec3(t.x * (1.0f / scaleVector.x), t.y * (1.0f / scaleVector.y), t.z * (1.0f / scaleVector.z));
 	model = glm::translate(model, t);
 }
 
@@ -59,6 +60,7 @@ void Model::rotate(const glm::vec3& axis, float angle) {
 
 // Skalierung um den Vektor @arg s
 void Model::scale(const glm::vec3& s) {
+	scaleVector += s;
 	model = glm::scale(model, s);
 }
 

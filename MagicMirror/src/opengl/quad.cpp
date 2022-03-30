@@ -58,17 +58,17 @@ void Quad::bind(const glm::mat4& projectionView) const {
 
 
 // Translation um dem Vektor @arg t
-void Quad::translate(const glm::vec3 t) {
+void Quad::translate(const glm::vec3& t) {
 	model = glm::translate(model, t);
 }
 
 // Rotation um die Achsen @arg axis um den Winkel @arg angle
-void Quad::rotate(const glm::vec3 axis, float angle) {
+void Quad::rotate(const glm::vec3& axis, float angle) {
 	model = glm::rotate(model, angle, axis);
 }
 
 // Skalierung um den Vektor @arg s
-void Quad::scale(const glm::vec3 s) {
+void Quad::scale(const glm::vec3& s) {
 	model = glm::scale(model, s);
 }
 

@@ -19,6 +19,8 @@ class Model : public Renderable {
 	Indexbuffer ib;
 	Texture* tex;
 	Shader* shader = nullptr;
+	glm::vec3 scaleVector;
+
 
 public:
 	Model();
@@ -28,9 +30,9 @@ public:
 
 	void bind(const glm::mat4& projectionView) const override;
 
-	void translate(const glm::vec3 t);
-	void rotate(const glm::vec3 axis, float angle);
-	void scale(const glm::vec3 s);
+	void translate(const glm::vec3& t);
+	void rotate(const glm::vec3& axis, float angle);
+	void scale(const glm::vec3& s);
 	void resetTransformationMatrix();
 
 	void setShader(Shader* s);
