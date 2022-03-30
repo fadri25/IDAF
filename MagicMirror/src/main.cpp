@@ -275,7 +275,7 @@ int main() {
 	//cv::namedWindow("w");
 
 	while (running) {
-		Timer timer("main loop");
+		//Timer timer("main loop");
 
 		cap >> frame;
 		if (frame.empty()) {
@@ -307,7 +307,7 @@ int main() {
 		// Convert image to grayscale
 		cv::cvtColor(frame, gray, cv::COLOR_BGR2GRAY);
 		// Scale value
-		double cvScale = 2.0;
+		double cvScale = 4.0;
 		double fx = 1 / cvScale;
 
 		// Resize the grayscale mmage 
@@ -317,8 +317,12 @@ int main() {
 
 
 		// Detect faces in the scaled image
-		faceCascade.detectMultiScale(smallImg, faces, 1.1, 5, 0, cv::Size(10, 10));
+		{
+			Timer timer("detect faces");
+			faceCascade.detectMultiScale(smallImg, faces, 1.1, 5, 0, cv::Size(10, 10));
+		}
 		if (facePoints.size() > 0) {
+			Timer timer("erase facePoints");
 			facePoints.erase(facePoints.begin(), facePoints.end());
 		}
 		facePoints.reserve(faces.size());
@@ -339,10 +343,6 @@ int main() {
 			scaledUp.width = cvRound((r.x + r.width - 1) * cvScale);
 			scaledUp.height = cvRound((r.y + r.height - 1) * cvScale);
 
-			// Draw a rectangle around the face
-			/*cv::rectangle(frame, cv::Point(cvRound(r.x * scale), cvRound(r.y * scale)),
-					cv::Point(cvRound((r.x + r.width - 1) * scale),
-					cvRound((r.y + r.height - 1) * scale)), color, 3, 8, 0);*/
 
 			cv::rectangle(frame, cv::Point(scaledUp.x, scaledUp.y), cv::Point(scaledUp.width, scaledUp.height), blue, 3, 8, 0);
 
@@ -364,12 +364,6 @@ int main() {
 				scaledUp.y = cvRound((r.y + nr.y) * cvScale);
 				scaledUp.width = cvRound((r.x + nr.x + nr.width - 1) * cvScale);
 				scaledUp.height = cvRound((r.y + nr.y + nr.height - 1) * cvScale);
-				/*
-				center.x = cvRound((r.x + nr.x + nr.width * 0.5) * scale);
-				center.y = cvRound((r.y + nr.y + nr.height * 0.5) * scale);
-				radius = cvRound((nr.width + nr.height) * 0.25 * scale);
-				circle(frame, center, radius, color, 3, 8, 0);
-				*/
 
 				cv::rectangle(frame, cv::Point(scaledUp.x, scaledUp.y), cv::Point(scaledUp.width, scaledUp.height), green, 3, 8, 0);
 			
@@ -390,28 +384,8 @@ int main() {
 			matrices.push_back(m);
 		}
 	
-		/*if (facePos.x != 0.0f && facePos.y != 0.0f) {
-			model->resetTransformationMatrix();
-			model->scale({ scale, scale, scale });
-			glm::vec3 endPos = convertToGLCoords(facePos.x, facePos.y);
 
-			float inverseScale = 1.0f / scale;
-
-			printf("facePos: %i %i\n", facePos.x, facePos.y);
-			printf("midXY: %i %i", midX, midY);
-			glm::vec3 translation(endPos.x * inverseScale * (distToFace) * 0.45f, endPos.y * inverseScale * (distToFace) * 0.45f, 0.0f);
-			model->translate(translation);
-		}
-		else {
-			model->resetTransformationMatrix();
-			model->scale({ scale, scale, scale });
-		}*/
-
-
-		//cv::line(frame, cv::Point(midX, 0), cv::Point(midX, frameHeight), 1, 8, 0);
-		//cv::line(frame, cv::Point(0, midY), cv::Point(frameWidth, midY), 1, 8, 0);
-		//cv::imshow("w", frame);
-
+		/*
 		Texture* tex = Texture::createTextureFromData(frameWidth, frameHeight, GL_BGR, frame.data);
 		quad.setTexture(tex);
 
@@ -421,20 +395,22 @@ int main() {
 		Renderer::submit(&quad);
 		Renderer::render();
 		Renderer::endScene();
+		*/
 
 		Renderer::beginScene();
+		Renderer::clear();
 		Renderer::submitMatrices(matrices);
 		Renderer::submit(model);
 		Renderer::renderModelsWithMatrices();
 		Renderer::endScene();
 		Renderer::flush();
 		frames++;
+		//delete tex;
 
 	
 
 		window.swapBuffers();
 
-		delete tex;
 		if (window.shouldClose()) {
 			break;
 		}
