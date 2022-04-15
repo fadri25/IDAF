@@ -30,6 +30,8 @@
 #include "deltatime.h"
 #include "fileio.h"
 #include "timer.h"
+#include "face.h"
+#include "eye.h"
 
 #include <imgui/imgui.h>
 #include <imgui/imgui_impl_opengl3.h>
@@ -43,8 +45,9 @@ Camera* camera;
 std::vector<Model*> models;
 int currentModel = 0;
 
+static const int MAX_FACES = 10;
+
 DeltaTime delta;
-bool running = true;
 
 int frameWidth = 0;
 int frameHeight = 0;
@@ -113,13 +116,18 @@ void keyFunc(GLFWwindow* window, int key, int scan, int action, int mods) {
 		}
 
 		if (key == GLFW_KEY_ESCAPE) {
-			running = false;
+			glfwSetWindowShouldClose(window, 1);
 		}
 
 	}
 
 }
 
+
+std::string split(const std::string& s, const char delimeter) {
+	int start = s.find_first_of('=');
+	return s.substr(s.find_first_of('='));
+}
 
 // Lädt alle Models
 void loadModels(Shader* shader) {
@@ -128,15 +136,23 @@ void loadModels(Shader* shader) {
 
 	std::vector<std::string> modelList;
 	readFileLineByLine(dir + modelListFile, modelList);
+	
 
 	models.reserve(modelList.size());
 
 	for (int i = 0; i < modelList.size(); i++) {
+
+		std::vector<std::string> info;
+		readFileLineByLine(dir + modelList[i] + "/info.txt", info);
+		int position = std::stoi(info[0]);
+
 		std::vector<Vertex> vertices;
 		std::vector<uint32_t> indices;
-		std::string texFile; 
-		assetimporter::loadModel(dir + modelList[i], vertices, indices, texFile);
-		models.emplace_back(new Model(vertices, indices, texFile, shader));
+		std::string modelDir = dir + modelList[i] + "/";
+		std::string modelFile = modelDir + modelList[i] + ".obj";
+		std::vector<std::string> textures;
+		assetimporter::loadModel(modelDir, modelList[i] + ".obj", vertices, indices, textures);
+		models.emplace_back(new Model(vertices, indices, /*modelDir + */ textures[0], shader, position));
 	}
 
 }
@@ -175,19 +191,16 @@ glm::vec3 convertToGLCoords(int srcX, int srcY) {
 	return coords;
 }
 
-glm::vec4 getScreenSpaceCoordinates(int x, int y) {
-	glm::vec4 src(x, y, 0.0f, 1.0f);
-
-	glm::mat4 modelMatrix(1.0f);
-
-	glm::mat4 mvp = camera->getViewProjection() * modelMatrix;
-
-	src = mvp * src;
+// Winkel von gesicht zu Kamera berechnen
+float getYaw(const glm::vec3& translation, float distToFace) {
 
 
-	return src;
+	glm::vec3 camPos = camera->getPosition();
+	glm::mat4 mvp = camera->getViewProjection() * glm::translate(glm::mat4(1.0f), translation);
+	glm::vec4 pos = mvp * glm::translate(glm::mat4(1.0f), translation) * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+
+	return (float)atan(pos.x / camPos.z);
 }
-
 
 void terminate() {
 	delete camera;
@@ -199,15 +212,20 @@ void terminate() {
 
 int main() {
 
-	Window window("GL_Window", 200, 200, 1080, 720);
-	camera = new Camera(60.f, 1080.0f / 720.0f, 0.01f, 1000.0f);
+	Window window("GL_Window", 200, 200, 1920, 1080);
+	camera = new Camera(60.f, 1920.0f / 1080.0f, 0.01f, 1000.0f);
 	window.setKeyFunc(keyFunc);
 	Shader shader("res/shaders/shader");
+	Shader flatShader("res/shaders/flatshader");
 
 	Renderer::init(camera);
 
 	loadModels(&shader);
 	model = models[currentModel];
+
+
+	Face face_str[MAX_FACES];
+	int currentFace = 0;
 
 
 
@@ -233,7 +251,7 @@ int main() {
 	int x = (float) frameWidth * 0.75f;
 	int y = (float) frameHeight * 0.75f;
 	glm::vec3 pos = convertToGLCoords( x, y );
-	float scale = 0.05f;
+	float scale = 1.0f;// 0.05f;
 	model->scale({scale, scale, scale});
 	//model->translate({ 4.3f * 0.5f, 2.95f * 0.5f, 0.0f});
 
@@ -242,12 +260,8 @@ int main() {
 	float d2 = dist - near;
 	float distToFace = 10.0f + near;
 
-	// IMPORTANT!!!! viewport right: 4.3f, left: -4.3f, top: 2.9f, bottom: -2.9f
 
-	//glm::vec3 translation(pos.x * 4.3f * d2 / dist, pos.y * 2.9f * d2 / dist, 0.0f);
-	//model->translate(translation);
-
-	Quad quad(1.0f * camera->getAspectRatio(), 1.0f, &shader);
+	Quad quad(1.0f * camera->getAspectRatio(), 1.0f, &flatShader);
 	quad.translate({ 0.0f, 0.0f, -10.0f });
 	quad.scale({ 8.7f, 8.7f, 0.0f }); // 8.7f
 
@@ -274,7 +288,7 @@ int main() {
 	
 	//cv::namedWindow("w");
 
-	while (running) {
+	while (true) {
 		//Timer timer("main loop");
 
 		cap >> frame;
@@ -317,12 +331,9 @@ int main() {
 
 
 		// Detect faces in the scaled image
-		{
-			Timer timer("detect faces");
-			faceCascade.detectMultiScale(smallImg, faces, 1.1, 5, 0, cv::Size(10, 10));
-		}
+		faceCascade.detectMultiScale(smallImg, faces, 1.1, 5, 0, cv::Size(5, 5));
+		
 		if (facePoints.size() > 0) {
-			Timer timer("erase facePoints");
 			facePoints.erase(facePoints.begin(), facePoints.end());
 		}
 		facePoints.reserve(faces.size());
@@ -351,6 +362,13 @@ int main() {
 			facePos.y = (scaledUp.y + (scaledUp.height - scaledUp.y) / 2);
 			facePoints.emplace_back(facePos);
 
+
+			if (currentFace < MAX_FACES) {
+				face_str[currentFace].set({scaledUp.x, scaledUp.y, scaledUp.width - scaledUp.x, scaledUp.height - scaledUp.y });
+				currentFace++;
+			}
+			Face* face_ptr = &face_str[currentFace - 1];
+
 			// Copy section where the face is in the original image
 			smallImgROI = smallImg(r);
 
@@ -366,47 +384,70 @@ int main() {
 				scaledUp.height = cvRound((r.y + nr.y + nr.height - 1) * cvScale);
 
 				cv::rectangle(frame, cv::Point(scaledUp.x, scaledUp.y), cv::Point(scaledUp.width, scaledUp.height), green, 3, 8, 0);
-			
+				
+				glm::vec4 f_rect = { scaledUp.x, scaledUp.y, scaledUp.x + scaledUp.width, scaledUp.y + scaledUp.height };
+				if (face_ptr->left.valid) {
+					face_ptr->right.set(f_rect);
+				}
+				else {
+					face_ptr->left.set(f_rect);
+				}
+			}
+
+			if (face_ptr->left.valid && face_ptr->right.valid) {
+				if (face_ptr->right.rect.x < face_ptr->left.rect.y) {
+					face_ptr->swapEyes();
+				}
 			}
 		}
 
 
-		std::vector<glm::mat4> matrices;
-		matrices.reserve(facePoints.size());
-		for (cv::Point& p : facePoints) {
-			//printf("facePos: %i %i\n", p.x, p.y);
-			glm::vec3 endPos = convertToGLCoords(p.x, p.y);
+		std::vector<glm::mat4> matrices;		
+		matrices.reserve(currentFace);
+		for (int i = 0; i < currentFace; i++) {
+			Face* f = &face_str[i];
+			
+			float roll = f->getZangle();
+			//printf("roll: %f\n", roll);
+			glm::vec2 coords = f->getPointCoordinates(model->getPosition());
+			glm::vec3 endPos = convertToGLCoords(coords.x, coords.y);
 			float inverseScale = 1.0f / scale;
-			glm::vec3 translation(endPos.x* inverseScale* (distToFace) * 0.45f, endPos.y* inverseScale* (distToFace) * 0.45f, 0.0f);
+			glm::vec3 translation(endPos.x * inverseScale * (distToFace) * 0.65f, endPos.y * inverseScale * (distToFace) * 0.45f, 0.0f);
 			glm::mat4 m(1.0f);
-			m = glm::scale(m, {scale, scale, scale} );
+			float yaw = getYaw(translation, distToFace);
+			printf("yaw: %f\n", yaw);
+			//m = glm::rotate(m, roll, { 0.0f, 0.0f, 1.0f });
+			m = glm::scale(m, { scale, scale, scale });
 			m = glm::translate(m, translation);
+			m = glm::rotate(m, yaw, { 0.0f, 1.0f, 0.0f });
 			matrices.push_back(m);
 		}
-	
 
-		/*
+		
 		Texture* tex = Texture::createTextureFromData(frameWidth, frameHeight, GL_BGR, frame.data);
 		quad.setTexture(tex);
 
 
-		Renderer::beginScene();
 		Renderer::clear();
+		
+		Renderer::beginScene();
 		Renderer::submit(&quad);
 		Renderer::render();
 		Renderer::endScene();
-		*/
+		
 
 		Renderer::beginScene();
-		Renderer::clear();
 		Renderer::submitMatrices(matrices);
 		Renderer::submit(model);
 		Renderer::renderModelsWithMatrices();
 		Renderer::endScene();
 		Renderer::flush();
 		frames++;
-		//delete tex;
-
+		delete tex;
+		
+		for (int i = 0; i < currentFace; i++)
+			face_str[i].invalidate();
+		currentFace = 0;
 	
 
 		window.swapBuffers();

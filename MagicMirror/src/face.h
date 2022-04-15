@@ -1,15 +1,32 @@
 #pragma once
 
-#include <mat4x4.hpp>
-
+#include <vec2.hpp>
+#include <vec4.hpp>
+#include "eye.h"
 
 struct Face {
 
+	static float margin;
 
-	glm::mat4 model;
+	bool valid = false;
+
+	glm::vec4 rect;
+
+	Eye left;
+	Eye right;
 
 	Face();
-	Face(const glm::mat4& rect);
+	Face(const glm::vec4& rect);
 	~Face();
+
+	void set(const glm::vec4& rect);
+
+	bool operator==(const glm::vec4& r) const;
+	
+	void invalidate();
+	void swapEyes();
+	float getZangle() const;
+
+	glm::vec2 getPointCoordinates(int position) const;
 
 };

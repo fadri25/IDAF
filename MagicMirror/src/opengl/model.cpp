@@ -25,8 +25,8 @@ Model::Model(std::vector<Vertex> verteces, std::vector<uint32_t> indeces, Shader
 }
 
 
-Model::Model(std::vector<Vertex> verteces, std::vector<uint32_t> indeces, const std::string& texFile, Shader* shader)
-	: vb(verteces), ib(indeces), tex(new Texture(texFile)), shader(shader) {
+Model::Model(std::vector<Vertex> verteces, std::vector<uint32_t> indeces, const std::string& texFile, Shader* shader, int position)
+	: vb(verteces), ib(indeces), tex(new Texture(texFile)), shader(shader), position(position) {
 
 }
 
@@ -43,6 +43,7 @@ void Model::bind(const glm::mat4& projectionView) const {
 	//glm::vec4 t = mvp * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
 	//printMat(model);
 	shader->setUniformMat4("mvp", mvp);
+	shader->setUniformMat4("model", model);
 	
 	vb.bind();
 	ib.bind();
@@ -53,9 +54,10 @@ void Model::bind(const glm::mat4& projectionView) const {
 
 // Wählt Shader, Vertexarray, Vertexbuffer, Indexbuffer, 
 // und Textur  mit Transformationsmatrix @arg mvp als aktive Daten für Shaderprogramm @memeber shader aus
-void Model::bindWithMatrix(const glm::mat4& mvp) const {
+void Model::bindWithMatrix(const glm::mat4& mvp, const glm::mat4& model) const {
 	shader->bind();
 	shader->setUniformMat4("mvp", mvp);
+	shader->setUniformMat4("model", model);
 
 	vb.bind();
 	ib.bind();

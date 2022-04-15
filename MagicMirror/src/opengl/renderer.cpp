@@ -88,7 +88,7 @@ void Renderer::renderModelsWithMatrices() {
 		glm::mat4 mvp = pv * matrices[i];
 
 		for (int j = 0; j < currentIndex; j++) {
-			renderables[j]->bindWithMatrix(mvp);
+			renderables[j]->bindWithMatrix(mvp, matrices[i]);
 			glDrawElements(GL_TRIANGLES, renderables[j]->getCount(), GL_UNSIGNED_INT, nullptr);
 		}
 	}

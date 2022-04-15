@@ -24,4 +24,7 @@ public:
 
 	static Texture* createTextureFromData(int w, int h, int format, const unsigned char* data = nullptr);
 
+private:
+	static void flipImage(unsigned char* src, unsigned char* dst, int w, int h);
+
 };

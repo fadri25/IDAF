@@ -28,6 +28,7 @@ public:
 
 	float getDistanceToProjectionPlane(float width) const;
 
+	glm::vec3 getPosition() const;
 
 	inline bool isLocked() const { return locked; }
 	inline glm::mat4 getView() const { return view; }

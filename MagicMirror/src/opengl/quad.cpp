@@ -59,7 +59,7 @@ void Quad::bind(const glm::mat4& projectionView) const {
 }
 
 // Wird nie aufgerufen. Implementier nur damit es konform ist mit @class Renderable
-void Quad::bindWithMatrix(const glm::mat4& mvp) const {
+void Quad::bindWithMatrix(const glm::mat4& mvp, const glm::mat4& model) const {
 }
 
 

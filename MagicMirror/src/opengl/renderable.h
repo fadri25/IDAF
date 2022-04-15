@@ -12,7 +12,7 @@ class Renderable {
 public:
 	
 	virtual void bind(const glm::mat4& projectionView) const = 0;
-	virtual void bindWithMatrix(const glm::mat4& mvp) const = 0;
+	virtual void bindWithMatrix(const glm::mat4& mvp, const glm::mat4& model) const = 0;
 
 	virtual int getCount() const = 0;
 };

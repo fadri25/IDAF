@@ -14,22 +14,32 @@
 // modelle einen Shader teilen können
 class Model : public Renderable {
 
+public:
+	enum Position {
+		CENTER,
+		TOP,
+		BETWEEN_EYES
+	};
+
+private:
 	glm::mat4 model;
 	Vertexbuffer vb;
 	Indexbuffer ib;
 	Texture* tex;
 	Shader* shader = nullptr;
 	glm::vec3 scaleVector;
+	int position;
 
 
 public:
 	Model();
 	Model(std::vector<Vertex> verteces, std::vector<uint32_t> indeces, Shader* shader);
-	Model(std::vector<Vertex> verteces, std::vector<uint32_t> indeces, const std::string& texFile, Shader* shader);
+	Model(std::vector<Vertex> verteces, std::vector<uint32_t> indeces, const std::string& texFile, Shader* shader, int position = CENTER);
+
 	~Model();
 
 	void bind(const glm::mat4& projectionView) const override;
-	void bindWithMatrix(const glm::mat4& mvp) const override;
+	void bindWithMatrix(const glm::mat4& mvp, const glm::mat4& model) const override;
 
 
 	void translate(const glm::vec3& t);
@@ -42,7 +52,7 @@ public:
 	void createTexture(int w, int h, const char* data = nullptr);
 
 	int getCount() const override;
-
-
+	
+	inline int getPosition() const { return position; }
 	inline Texture* getTexture() { return tex; }
 };

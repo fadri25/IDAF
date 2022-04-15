@@ -15,6 +15,19 @@
 namespace assetimporter {
 
 
+	
+	std::string checkTexturePath(const std::string& aPath, const std::string& dir) {
+
+		int start = aPath.find_last_of('/');
+
+		if (start == std::string::npos) {
+			return dir + aPath;
+		}
+
+		int end = aPath.find_last_of('.');
+
+		return dir + aPath.substr(start, end - start);
+	}
 
 	std::vector<Texture> loadTextures(aiMaterial* mat, aiTextureType type, std::string name) {
 
@@ -28,12 +41,17 @@ namespace assetimporter {
 		return textures;
 	}
 
-	void loadModel(const std::string& file, std::vector<Vertex>& vertices, std::vector<uint32_t>& indices, std::string& texFile) {
+	void loadModel(const std::string& dir, 
+					const std::string& file, 
+					std::vector<Vertex>& vertices, 
+					std::vector<uint32_t>& indices, 
+					std::vector<std::string>& textures) {
 
-		const aiScene* scene = aiImportFile(file.c_str(), aiProcessPreset_TargetRealtime_MaxQuality);
+		std::string fullPath = dir + file;
+		const aiScene* scene = aiImportFile(fullPath.c_str(), aiProcessPreset_TargetRealtime_MaxQuality);
 
 		if (!scene) {
-			printf("Failed to load View Model: %s\n", file.c_str());
+			printf("Failed to load View Model: %s\n", fullPath.c_str());
 			printf("Error:\n%s\n", aiGetErrorString());
 			return;
 		}
@@ -46,7 +64,7 @@ namespace assetimporter {
 
 			aiMesh* mesh = scene->mMeshes[i];
 			
-			std::vector<Texture> textures;
+			//std::vector<Texture> textures;
 
 			//std::vector<Vertex> vertices;
 			vertices.reserve(mesh->mNumVertices);
@@ -94,7 +112,9 @@ namespace assetimporter {
 			indices.reserve(mesh->mNumFaces * 3u);
 
 			for (uint32_t j = 0; j < mesh->mNumFaces; j++) {
-			
+				
+				//if (mesh->mFaces[j].mNumIndices < 3u) continue;
+
 				assert(mesh->mFaces[j].mNumIndices == 3u);
 
 				indices.push_back(mesh->mFaces[j].mIndices[0u]);
@@ -109,12 +129,11 @@ namespace assetimporter {
 				std::vector<Texture> diffuseMap = loadTextures(ai_mat, aiTextureType_SPECULAR, "diffuse_tex");
 				std::vector<Texture> specularMap = loadTextures(ai_mat, aiTextureType_SPECULAR, "specular_tex");
 
-				textures.insert(textures.end(), diffuseMap.begin(), diffuseMap.end());
-				textures.insert(textures.end(), specularMap.begin(), specularMap.end());
+				//textures.insert(textures.end(), diffuseMap.begin(), diffuseMap.end());
+				//textures.insert(textures.end(), specularMap.begin(), specularMap.end());
 
 			}
 
-			std::string fullPath = "";
 
 			for (uint32_t j = 0; j < scene->mNumMaterials; j++) {
 				const aiMaterial* pMaterial = scene->mMaterials[j];
@@ -122,17 +141,13 @@ namespace assetimporter {
 					aiString path;
 
 					if (pMaterial->GetTexture(aiTextureType_DIFFUSE, 0, &path, NULL, NULL, NULL, NULL, NULL) == AI_SUCCESS) {
-						//fullPath.append(path.C_Str());
-						texFile = "res/models/";
-						texFile.append(path.C_Str());
 
-						textures.push_back(Texture(fullPath.c_str()));
-
+						textures.push_back(checkTexturePath(path.C_Str(), dir));
 					}
 				}
 			}
 
-			if (texFile.length() == 0) {
+			/*if (texFile.length() == 0) {
 				std::string texFileName = "res/models/";
 				
 				int start = file.find_last_of('/');
@@ -140,7 +155,7 @@ namespace assetimporter {
 				texFileName = file.substr(start, end - start);
 				
 				texFile += texFileName + ".png";
-			}
+			}*/
 			//models.emplace_back(Model(&vertices[0], vertices.size(), &indices[0], indices.size(), fullPath, nullptr));
 		}
 

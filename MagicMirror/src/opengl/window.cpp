@@ -29,7 +29,7 @@ Window::Window(const char* title, int x, int y, int w, int h) : x(x), y(y), w(w)
 	}
 
 	// Erstellen eines Open Gl Fenster
-	window = glfwCreateWindow(1080, 720, "window", nullptr, nullptr);
+	window = glfwCreateWindow(w, h, title, nullptr, nullptr);
 	glfwMakeContextCurrent(window);
 
 	// Initialisierung des Gl Extension Wranglers

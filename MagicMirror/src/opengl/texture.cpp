@@ -20,6 +20,8 @@ Texture::Texture(const std::string& file) {
 
 	int comp;
 	unsigned char* image = stbi_load(file.c_str(), &w, &h, &comp, STBI_rgb_alpha);
+	unsigned char* flipped = new unsigned char[w * 4 * h];
+	flipImage(image, flipped, w, h);
 
 	if (!image) {
 		std::cout << "cannot load image: " << file << std::endl;
@@ -36,9 +38,9 @@ Texture::Texture(const std::string& file) {
 	GL_CALL(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
 
 
-	GL_CALL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, image));
+	GL_CALL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, flipped));
 
-
+	delete[] flipped;
 	stbi_image_free(image);
 
 }
@@ -90,4 +92,14 @@ Texture* Texture::createTextureFromData(int w, int h, int format, const unsigned
 
 
 	return texture;
+}
+
+// Spiegelt eine Bilddatei @arg src und schreibt diese in @arg dst an der X-Achse
+void Texture::flipImage(unsigned char* src, unsigned char* dst, int w, int h) {
+	
+	for (int y = 0; y < h; y++) {
+		int srcI = y * w * 4;
+		int dstI = w * 4 * h - (y + 1) * w * 4;
+		memcpy_s(&dst[dstI], w * 4, &src[srcI], w * 4);
+	}
 }

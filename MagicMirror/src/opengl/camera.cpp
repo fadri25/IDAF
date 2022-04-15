@@ -12,7 +12,7 @@ Camera::Camera(float fov, float aspect, float near, float far) : fov(fov), aspec
 	//projection = glm::ortho(-1.0f * aspect, 1.0f * aspect, -1.0f, 1.0f, 0.001f, 1000.0f);
 	view = glm::mat4(1.0f);
 
-	translate({ 0.0f, 0.0f, -5.0f });
+	translate({ 0.0f, 0.0f, -10.0f });
 }
 
 Camera::~Camera() {
@@ -52,3 +52,9 @@ float Camera::getDistanceToProjectionPlane(float width) const {
 	float half = width * 0.5f;
 	return half / tan(fov * 0.5f);
 }
+
+// Gibt Position der Kamera an den Aufrufer zurück
+glm::vec3 Camera::getPosition() const {
+	return glm::vec3(view[3][0], view[3][1], view[3][2]);
+}
+
