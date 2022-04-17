@@ -60,10 +60,8 @@ void Texture::bind(int index) const {
 	glBindTexture(GL_TEXTURE_2D, id);
 }
 
-void Texture::setPixelData(int w, int h, int format, const unsigned char* data) {
-	glBindTexture(GL_TEXTURE_2D, id);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, format, GL_UNSIGNED_BYTE, data);
-}
+
+
 
 
 void Texture::set(uint32_t id, int w, int h) {
@@ -73,6 +71,7 @@ void Texture::set(uint32_t id, int w, int h) {
 }
 
 
+// Erstellt eine Textur aus den Pixeldaten von @arg data
 Texture* Texture::createTextureFromData(int w, int h, int format, const unsigned char* data) {
 	
 	unsigned int t = 0;

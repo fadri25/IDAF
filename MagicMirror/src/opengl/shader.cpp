@@ -68,7 +68,14 @@ int Shader::getUniformLocation(const char* name) const {
 	return location;
 }
 
-// Ladet die Daten einer 4X4 Matrix in die gewünschte Variabel mit dem Namen von @arg name
+// Ladet einen einzelnen "float" wert in die gewünschte Variabel mit dem Namen in @arg name des Shaderprogramms
+void Shader::setFloat(const char* name, float v) {
+	int location = getUniformLocation(name);
+	glUniform1f(location, v);
+}
+
+
+// Ladet die Daten einer 4X4 Matrix in die gewünschte Variabel mit dem Namen von @arg name des Shaderprogramms
 void Shader::setUniformMat4(const char* name, const glm::mat4& m) {
 	int location = getUniformLocation(name);
 	glUniformMatrix4fv(location, 1, GL_FALSE, &m[0][0]);

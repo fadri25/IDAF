@@ -1,7 +1,7 @@
 #include "eye.h"
 
 
-Eye::Eye() {
+Eye::Eye() : rect(0.0f), valid(false) {
 
 }
 
@@ -28,12 +28,19 @@ void Eye::set(const glm::vec4& rect) {
 
 
 void Eye::invalidate() {
+	rect.x = 0;
+	rect.y = 0;
+	rect.z = 0;
+	rect.w = 0;
 	valid = false;
 }
 
-
+// Gibt Koordinaten des Zentrums des Auges an den Aufrufer zurück
 glm::vec2  Eye::getCenter() const {
 	
+	if (!valid)
+		return glm::vec2(0.0f);
+
 	glm::vec2 v;
 	v.x = rect.x + rect.z * 0.5f;
 	v.y = rect.y + rect.w * 0.5f;

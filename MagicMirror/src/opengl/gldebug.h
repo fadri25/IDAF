@@ -5,7 +5,7 @@
 #include <sstream>
 
 // Preprocessor Makro
-// Ruft Funktion "x" auf. Wenn diese als "false" resultiert haltet das programm
+// Ruft Funktion @arg x auf. Wenn diese als "false" resultiert haltet das programm
 #define ASSERT(x) if(!x) { __debugbreak(); }
 
 // Preprocessor Makro

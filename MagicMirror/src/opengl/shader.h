@@ -25,6 +25,7 @@ public:
 
 	int getUniformLocation(const char* name) const;
 
+	void setFloat(const char* name, float v);
 	void setUniformMat4(const char* name, const glm::mat4& m);
 
 

@@ -5,15 +5,6 @@
 
 
 
-void printMat(const glm::mat4& m) {
-
-	printf("Matrix:\n");
-	for (int i = 0; i < 4; i++) {
-		printf("%f %f %f %f\n", m[i][0], m[i][1], m[i][2], m[i][3]);
-	}
-	printf("\n");
-	system("cls");
-}
 
 Model::Model() {
 
@@ -82,14 +73,11 @@ void Model::scale(const glm::vec3& s) {
 	model = glm::scale(model, s);
 }
 
+// Setzt die Transformationsmatrix auf eine Einheitsmatrix zurück
 void Model::resetTransformationMatrix() {
 	model = glm::mat4(1.0f);
 }
 
-
-void Model::createTexture(int w, int h, const char* data) {
-	tex = Texture::createTextureFromData(w, h, GL_RGBA, (const unsigned char*) data);
-}
 
 
 // Setzt Pointer zu einem Shader
@@ -98,4 +86,10 @@ void Model::setShader(Shader* s) {
 }
 
 
-int Model::getCount() const { return ib.getCount(); }
+int Model::getCount() const { 
+	return ib.getCount(); 
+}
+
+Shader* Model::getShader() const {
+	return shader;
+}

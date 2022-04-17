@@ -80,8 +80,15 @@ void Quad::scale(const glm::vec3& s) {
 
 
 
-int Quad::getCount() const { return ib.getCount(); }
+int Quad::getCount() const { 
+	return ib.getCount(); 
+}
 
 void Quad::setTexture(Texture* tex) {
 	this->tex = tex;
+}
+
+
+Shader* Quad::getShader() const {
+	return shader;
 }

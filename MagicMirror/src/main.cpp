@@ -33,17 +33,29 @@
 #include "face.h"
 #include "eye.h"
 
-#include <imgui/imgui.h>
-#include <imgui/imgui_impl_opengl3.h>
-#include <imgui/imgui_impl_glfw.h>
+
+
+#define LOG(x) printf(#x + "\n")
+
+bool debug = true;
 
 int frames = 0;
 
 Model* model = nullptr;
 Camera* camera;
+Shader* shader = nullptr;
+Shader* fadeShader = nullptr;
+Shader* flatShader = nullptr;
 
 std::vector<Model*> models;
 int currentModel = 0;
+int nextModel = currentModel + 1;
+bool inCycle = true;
+bool inFade = false;
+static const float CYCLE_DURATION = 10.0f;
+static const float FADE_DURATION = 5.0f;
+float elapsedTime = 0.0f;
+
 
 static const int MAX_FACES = 10;
 
@@ -54,65 +66,91 @@ int frameHeight = 0;
 int midX = 0;
 int midY = 0;
 
+void startFade(int increment);
+
 
 void keyFunc(GLFWwindow* window, int key, int scan, int action, int mods) {
 
 	if (action == GLFW_PRESS || action == GLFW_REPEAT) {
-		if (key == GLFW_KEY_A) {
-			model->rotate({0.0f, 0.9f, 0.0f}, -3.141592f / 64.0f);
-		}
-		else if (key == GLFW_KEY_D) {
-			model->rotate({ 0.0f, 1.0f, 0.0f }, 3.141592f / 64.0f);
-		}
-		
-		if (key == GLFW_KEY_W) {
-			model->rotate({ 1.0f, 0.0f, 0.0f }, 3.141592f / 64.0f);
-		}
-		else if (key == GLFW_KEY_S) {
-			model->rotate({ 1.0f, 0.0f, 0.0f }, -3.141592f / 64.0f);
+		if (debug) {
+			if (key == GLFW_KEY_A) {
+				model->rotate({ 0.0f, 0.9f, 0.0f }, -3.141592f / 64.0f);
+			}
+			else if (key == GLFW_KEY_D) {
+				model->rotate({ 0.0f, 1.0f, 0.0f }, 3.141592f / 64.0f);
+			}
+
+			if (key == GLFW_KEY_W) {
+				model->rotate({ 1.0f, 0.0f, 0.0f }, 3.141592f / 64.0f);
+			}
+			else if (key == GLFW_KEY_S) {
+				model->rotate({ 1.0f, 0.0f, 0.0f }, -3.141592f / 64.0f);
+			}
+
+			if (key == GLFW_KEY_DOWN) {
+				model->translate({ 0.0f, -0.1f, 0.0f });
+			}
+			else if (key == GLFW_KEY_UP) {
+				model->translate({ 0.0f, 0.1f, 0.0f });
+			}
+
+			if (key == GLFW_KEY_RIGHT) {
+				model->translate({ 0.1f, 0.0f, 0.0f });
+			}
+			else if (key == GLFW_KEY_LEFT) {
+				model->translate({ -0.1f, 0.0f, 0.0f });
+			}
+
+			if (key == GLFW_KEY_K) {
+				model->translate({ 0.0f, 0.0f, -0.5f });
+			}
+			else if (key == GLFW_KEY_I) {
+				model->translate({ 0.0f, 0.0f, 0.5f });
+			}
+
+			if (key == GLFW_KEY_T) {
+				model->scale({ 1.1f, 1.1f, 1.1f });
+			}
+			else if (key == GLFW_KEY_G) {
+				model->scale({ 0.9f, 0.9f, 0.9f });
+			}
+
+			if (key == GLFW_KEY_F2) {
+				model->resetTransformationMatrix();
+			}
 		}
 
-		if (key == GLFW_KEY_DOWN) {
-			model->translate({ 0.0f, -0.1f, 0.0f});
-		}
-		else if (key == GLFW_KEY_UP) {
-			model->translate({ 0.0f, 0.1f, 0.0f });
+		if (!inFade) {
+			if (key == GLFW_KEY_N) {
+				inCycle = false;
+				startFade(1);
+				elapsedTime = 0.0f;
+				//currentModel++;
+				//if (currentModel >= models.size()) currentModel = 0;
+				//model = models[currentModel];
+			}
+			else if (key == GLFW_KEY_P) {
+				inCycle = false;
+				startFade(-1);
+				elapsedTime = 0.0f;
+				//currentModel--;
+				//if (currentModel <= -1) currentModel = models.size() -1;
+				//model = models[currentModel];
+			}
+			else if (key == GLFW_KEY_C) {
+				if (inCycle) {
+					return;
+				}
+
+				inCycle = true;
+				elapsedTime = 0.0f;
+
+			}
 		}
 
-		if (key == GLFW_KEY_RIGHT) {
-			model->translate({ 0.1f, 0.0f, 0.0f });
-		}
-		else if (key == GLFW_KEY_LEFT) {
-			model->translate({ -0.1f, 0.0f, 0.0f });
-		}
-
-		if (key == GLFW_KEY_K) {
-			model->translate({ 0.0f, 0.0f, -0.5f});
-		}
-		else if (key == GLFW_KEY_I) {
-			model->translate({ 0.0f, 0.0f, 0.5f});
-		}
-
-		if (key == GLFW_KEY_N) {
-			currentModel++;
-			if (currentModel >= models.size()) currentModel = 0;
-			model = models[currentModel];
-		}
-		else if (key == GLFW_KEY_P) {
-			currentModel--;
-			if (currentModel <= -1) currentModel = models.size() -1;
-			model = models[currentModel];
-		}
-
-		if (key == GLFW_KEY_T) {
-			model->scale({ 1.1f, 1.1f, 1.1f });
-		}
-		else if (key == GLFW_KEY_G) {
-			model->scale({ 0.9f, 0.9f, 0.9f });
-		}
 
 		if (key == GLFW_KEY_F1) {
-			model->resetTransformationMatrix();
+			debug = !debug;
 		}
 
 		if (key == GLFW_KEY_ESCAPE) {
@@ -124,12 +162,7 @@ void keyFunc(GLFWwindow* window, int key, int scan, int action, int mods) {
 }
 
 
-std::string split(const std::string& s, const char delimeter) {
-	int start = s.find_first_of('=');
-	return s.substr(s.find_first_of('='));
-}
-
-// Lädt alle Models
+// Lädt alle Modelle
 void loadModels(Shader* shader) {
 	std::string dir = "res/models/";
 	const char* modelListFile = "models.txt";
@@ -152,12 +185,45 @@ void loadModels(Shader* shader) {
 		std::string modelFile = modelDir + modelList[i] + ".obj";
 		std::vector<std::string> textures;
 		assetimporter::loadModel(modelDir, modelList[i] + ".obj", vertices, indices, textures);
-		models.emplace_back(new Model(vertices, indices, /*modelDir + */ textures[0], shader, position));
+		models.emplace_back(new Model(vertices, indices, textures[0], shader, position));
 	}
 
 }
 
 
+
+
+// Wechsel zu dem nächsten 3D-Modell
+void swapModels() {
+	currentModel = nextModel;
+	model = models[currentModel];
+}
+
+// Beginnt Übergangsverlauf
+void startFade(int increment) {
+	inFade = true;
+	nextModel = currentModel + increment;
+	if (nextModel == models.size()) {
+		nextModel = 0;
+	}
+	else if (nextModel == -1) {
+		nextModel = models.size() - 1;
+	}
+	model->setShader(fadeShader);
+	models[nextModel]->setShader(fadeShader);
+}
+
+// Beendet Übergangsverlauf
+void endFade() {
+	model->setShader(shader);
+	models[nextModel]->setShader(shader);
+	swapModels();
+	inFade = false;
+}
+
+
+
+// Konvertiert relative Fensterkoordinaten zu OpenGL Koordinaten
 glm::vec3 convertToGLCoords(int srcX, int srcY) {
 
 	glm::vec3 coords(0.0f);
@@ -202,32 +268,36 @@ float getYaw(const glm::vec3& translation, float distToFace) {
 	return (float)atan(pos.x / camPos.z);
 }
 
+// Räumt Arbeitsspeicher auf
 void terminate() {
 	delete camera;
 
 	for (int i = models.size() -1; i > -1; i--) {
 		delete models[i];
 	}
+	delete shader;
+	delete fadeShader;
+	delete flatShader;
 }
 
+// Einstiegspunkt des Programmes
 int main() {
 
 	Window window("GL_Window", 200, 200, 1920, 1080);
 	camera = new Camera(60.f, 1920.0f / 1080.0f, 0.01f, 1000.0f);
 	window.setKeyFunc(keyFunc);
-	Shader shader("res/shaders/shader");
-	Shader flatShader("res/shaders/flatshader");
+	shader = new Shader("res/shaders/shader");
+	flatShader = new Shader("res/shaders/flatshader");
+	fadeShader = new Shader("res/shaders/fadeshader");
 
 	Renderer::init(camera);
 
-	loadModels(&shader);
+	loadModels(shader);
 	model = models[currentModel];
 
 
-	Face face_str[MAX_FACES];
+	Face faces[MAX_FACES];
 	int currentFace = 0;
-
-
 
 
 	cv::utils::logging::setLogLevel(cv::utils::logging::LogLevel::LOG_LEVEL_SILENT);
@@ -248,12 +318,7 @@ int main() {
 	cv::Mat frame;
 
 
-	int x = (float) frameWidth * 0.75f;
-	int y = (float) frameHeight * 0.75f;
-	glm::vec3 pos = convertToGLCoords( x, y );
 	float scale = 1.0f;// 0.05f;
-	model->scale({scale, scale, scale});
-	//model->translate({ 4.3f * 0.5f, 2.95f * 0.5f, 0.0f});
 
 	float near = camera->getNear();
 	float dist = camera->getZdistance();
@@ -261,9 +326,10 @@ int main() {
 	float distToFace = 10.0f + near;
 
 
-	Quad quad(1.0f * camera->getAspectRatio(), 1.0f, &flatShader);
+	Quad quad(1.0f * camera->getAspectRatio(), 1.0f, flatShader);
 	quad.translate({ 0.0f, 0.0f, -10.0f });
-	quad.scale({ 8.7f, 8.7f, 0.0f }); // 8.7f
+	quad.scale({ 11.55f, 11.55f, 0.0f }); // 8.7f
+	Texture* tex = nullptr;
 
 	cv::CascadeClassifier faceCascade;
 	faceCascade.load("haarcascades/haarcascade_frontalface_default.xml");
@@ -284,9 +350,8 @@ int main() {
 	}
 	
 	std::vector<cv::Point> facePoints;
-	//cv::Point facePos;
-	
-	//cv::namedWindow("w");
+
+
 
 	while (true) {
 		//Timer timer("main loop");
@@ -299,6 +364,24 @@ int main() {
 
 		cv::flip(frame, frame, 1);
 	
+		float fadeInAlpha = 0.0f;
+		if (inFade) {
+			elapsedTime += delta.getDelta();
+			if (elapsedTime >= FADE_DURATION) {
+				endFade();
+				elapsedTime = 0.0f;
+			}
+			else {
+				fadeInAlpha = elapsedTime / FADE_DURATION;
+			}
+		}
+		else if (inCycle) {
+			elapsedTime += delta.getDelta();
+			if (elapsedTime >= CYCLE_DURATION) {
+				startFade(1);
+				elapsedTime = 0.0f;
+			}
+		}
 
 		if ((float)delta >= 1.0f) {
 			//printf("fps = %i\n", frames);
@@ -312,7 +395,7 @@ int main() {
 
 
 		// opencv
-		std::vector<cv::Rect> faces;
+		std::vector<cv::Rect> faceRects;
 		std::vector<cv::Rect> eyes;
 
 		// Create empyt image for grayscale and down sized version of original image
@@ -331,12 +414,12 @@ int main() {
 
 
 		// Detect faces in the scaled image
-		faceCascade.detectMultiScale(smallImg, faces, 1.1, 5, 0, cv::Size(5, 5));
+		faceCascade.detectMultiScale(smallImg, faceRects, 1.1, 5, 0, cv::Size(5, 5));
 		
 		if (facePoints.size() > 0) {
 			facePoints.erase(facePoints.begin(), facePoints.end());
 		}
-		facePoints.reserve(faces.size());
+		facePoints.reserve(faceRects.size());
 
 
 		cv::Mat smallImgROI;
@@ -345,8 +428,8 @@ int main() {
 		cv::Scalar red = cv::Scalar(0, 0, 255);
 
 		// Iterate through rectangles around faces in the image
-		for (size_t i = 0; i < faces.size(); i++) {
-			cv::Rect r = faces[i];
+		for (size_t i = 0; i < faceRects.size(); i++) {
+			cv::Rect r = faceRects[i];
 
 			cv::Rect scaledUp;
 			scaledUp.x = cvRound(r.x * cvScale);
@@ -364,15 +447,16 @@ int main() {
 
 
 			if (currentFace < MAX_FACES) {
-				face_str[currentFace].set({scaledUp.x, scaledUp.y, scaledUp.width - scaledUp.x, scaledUp.height - scaledUp.y });
+				faces[currentFace].set({scaledUp.x, scaledUp.y, scaledUp.width - scaledUp.x, scaledUp.height - scaledUp.y });
 				currentFace++;
 			}
-			Face* face_ptr = &face_str[currentFace - 1];
+			Face* face_ptr = &faces[currentFace - 1];
 
 			// Copy section where the face is in the original image
 			smallImgROI = smallImg(r);
 
-			eyeCascade.detectMultiScale(smallImgROI, eyes, 1.1, 3, 0 | cv::CASCADE_SCALE_IMAGE, cv::Size(1, 1), cv::Size(30, 30));
+
+			eyeCascade.detectMultiScale(smallImgROI, eyes, 1.1, 3, 0, cv::Size(5, 5), cv::Size(30, 30));
 
 			// Draw circles around eyes
 			for (size_t j = 0; j < eyes.size(); j++) {
@@ -385,7 +469,7 @@ int main() {
 
 				cv::rectangle(frame, cv::Point(scaledUp.x, scaledUp.y), cv::Point(scaledUp.width, scaledUp.height), green, 3, 8, 0);
 				
-				glm::vec4 f_rect = { scaledUp.x, scaledUp.y, scaledUp.x + scaledUp.width, scaledUp.y + scaledUp.height };
+				glm::vec4 f_rect = { scaledUp.x, scaledUp.y, scaledUp.width - scaledUp.x, scaledUp.height - scaledUp.y };
 				if (face_ptr->left.valid) {
 					face_ptr->right.set(f_rect);
 				}
@@ -399,54 +483,91 @@ int main() {
 					face_ptr->swapEyes();
 				}
 			}
+			else if (face_ptr->left.valid || face_ptr->right.valid) {
+				face_ptr->checkEyes();
+			}
 		}
 
 
 		std::vector<glm::mat4> matrices;		
 		matrices.reserve(currentFace);
-		for (int i = 0; i < currentFace; i++) {
-			Face* f = &face_str[i];
-			
-			float roll = f->getZangle();
-			//printf("roll: %f\n", roll);
-			glm::vec2 coords = f->getPointCoordinates(model->getPosition());
-			glm::vec3 endPos = convertToGLCoords(coords.x, coords.y);
-			float inverseScale = 1.0f / scale;
-			glm::vec3 translation(endPos.x * inverseScale * (distToFace) * 0.65f, endPos.y * inverseScale * (distToFace) * 0.45f, 0.0f);
-			glm::mat4 m(1.0f);
-			float yaw = getYaw(translation, distToFace);
-			printf("yaw: %f\n", yaw);
-			//m = glm::rotate(m, roll, { 0.0f, 0.0f, 1.0f });
-			m = glm::scale(m, { scale, scale, scale });
-			m = glm::translate(m, translation);
-			m = glm::rotate(m, yaw, { 0.0f, 1.0f, 0.0f });
-			matrices.push_back(m);
+		std::vector<glm::mat4> secondaryMatrices;
+		if (inFade) {
+			secondaryMatrices.reserve(currentFace);
 		}
 
-		
-		Texture* tex = Texture::createTextureFromData(frameWidth, frameHeight, GL_BGR, frame.data);
-		quad.setTexture(tex);
-
+		for (int i = 0; i < currentFace; i++) {
+			Face* f = &faces[i];
+			
+			//float roll = f->getRoll();
+			glm::vec2 coords = f->getPointCoordinates(model->getPosition());
+			//printf("coords [%i]: %f %f\n", currentFace,  coords.x, coords.y);
+			
+			glm::vec3 endPos = convertToGLCoords(coords.x, coords.y);
+			float inverseScale = 1.0f / scale;
+			glm::vec3 translation(endPos.x * inverseScale * (distToFace), endPos.y * inverseScale * (distToFace) * 0.7f, 0.0f);
+			float yaw = getYaw(translation, distToFace) * 0.75f;
+			
+			glm::mat4 m(1.0f);
+			m = glm::scale(m, { scale, scale, scale });
+			m = glm::translate(m, translation);
+			//m = glm::rotate(m, roll, { 0.0f, 0.0f, 1.0f });
+			m = glm::rotate(m, yaw, { 0.0f, 1.0f, 0.0f });
+			matrices.push_back(m);
+			
+			if (inFade) {
+				glm::vec2 coords2 = f->getPointCoordinates(models[nextModel]->getPosition());
+				glm::vec3 endPos2 = convertToGLCoords(coords2.x, coords2.y);
+				glm::vec3 translation2(endPos2.x* inverseScale* (distToFace), endPos2.y* inverseScale* (distToFace) * 0.7f, 0.0f);
+				glm::mat4 m2(1.0f);
+				m2 = glm::scale(m2, { scale, scale, scale });
+				m2 = glm::translate(m2, translation2);
+				//m2 = glm::rotate(m2, roll, { 0.0f, 0.0f, 1.0f });
+				m2 = glm::rotate(m2, yaw, { 0.0f, 1.0f, 0.0f });
+				secondaryMatrices.push_back(m2);
+			}
+		}
 
 		Renderer::clear();
-		
-		Renderer::beginScene();
-		Renderer::submit(&quad);
-		Renderer::render();
-		Renderer::endScene();
-		
+	
+		if (debug) {
+			if (tex)
+				delete tex;
+
+			tex = Texture::createTextureFromData(frameWidth, frameHeight, GL_BGR, frame.data);
+			quad.setTexture(tex);
+
+			Renderer::beginScene();
+			Renderer::submit(&quad);
+			Renderer::render();
+			Renderer::endScene();
+		}
 
 		Renderer::beginScene();
 		Renderer::submitMatrices(matrices);
 		Renderer::submit(model);
-		Renderer::renderModelsWithMatrices();
+		
+		if (inFade) {
+			Renderer::renderModelsWithMatrices(true, 1.0f - fadeInAlpha);
+			//Renderer::endScene();
+			Renderer::flush();
+
+			//Renderer::beginScene();
+			Renderer::submitMatrices(secondaryMatrices);
+			Model* m = models[nextModel];
+			Renderer::submit((Renderable*)m);
+			Renderer::renderModelsWithMatrices(true, fadeInAlpha);
+		}
+		else {
+			Renderer::renderModelsWithMatrices();
+		}
+		
 		Renderer::endScene();
 		Renderer::flush();
 		frames++;
-		delete tex;
 		
 		for (int i = 0; i < currentFace; i++)
-			face_str[i].invalidate();
+			faces[i].invalidate();
 		currentFace = 0;
 	
 

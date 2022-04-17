@@ -16,7 +16,6 @@ public:
 	~Texture();
 
 	void bind(int index = 0) const;
-	void setPixelData(int w, int h, int format, const unsigned char* data);
 
 	void set(uint32_t id, int w, int h);
 

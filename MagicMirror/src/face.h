@@ -25,7 +25,8 @@ struct Face {
 	
 	void invalidate();
 	void swapEyes();
-	float getZangle() const;
+	void checkEyes();
+	float getRoll() const;
 
 	glm::vec2 getPointCoordinates(int position) const;
 

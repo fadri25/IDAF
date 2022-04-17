@@ -4,7 +4,7 @@
 #include <vec2.hpp>
 #include <vec3.hpp>
 
-// Repräsentierung der Daten von Scheitelpunkten
+// Repräsentierung der Daten von Scheitelpunkten eines 3D-Modells
 struct Vertex {
 
 	glm::vec3 pos;

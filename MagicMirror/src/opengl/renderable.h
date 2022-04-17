@@ -2,8 +2,10 @@
 
 #include <mat4x4.hpp>
 
+#include "shader.h"
 
-// Rein virtuelle Klasse
+// Rein virtuelle Klasse (Bedeutet es ist nicht möglich eine Instanz dieser Klasse direkt zu erstellen.
+//							Es können nur Instanzen von Klassen, welche diese Klasse erweitern, erstellt werden)
 // Dient dazu verschiedene Objekttypen an den Renderer senden zu können
 class Renderable {
 
@@ -15,4 +17,6 @@ public:
 	virtual void bindWithMatrix(const glm::mat4& mvp, const glm::mat4& model) const = 0;
 
 	virtual int getCount() const = 0;
+
+	virtual Shader* getShader() const = 0;
 };

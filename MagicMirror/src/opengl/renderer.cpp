@@ -14,6 +14,7 @@ Renderable** Renderer::renderables;
 int Renderer::currentIndex = 0;
 
 bool Renderer::inScene = false;
+float Renderer::fadeInAlpha = 1.0f;
 
 
 // Initialisierung
@@ -44,6 +45,14 @@ void Renderer::submit(Renderable* r) {
 	renderables[currentIndex] = r;
 	currentIndex++;
 }
+
+
+// Setzt Wert von @static fadeInAlpha
+void Renderer::setFadeInAlpha(float alpha) {
+	fadeInAlpha = alpha;
+}
+
+
 
 // Startet eine neue Szene
 void Renderer::beginScene() {
@@ -77,7 +86,7 @@ void Renderer::render() {
 }
 
 // Macht für jedes Modell einen draw call für jede Transformationsmatrix in @static matrices
-void Renderer::renderModelsWithMatrices() {
+void Renderer::renderModelsWithMatrices(bool fade, float alpha) {
 	if (!inScene) {
 		return;
 	}
@@ -89,6 +98,9 @@ void Renderer::renderModelsWithMatrices() {
 
 		for (int j = 0; j < currentIndex; j++) {
 			renderables[j]->bindWithMatrix(mvp, matrices[i]);
+			if (fade) {
+				renderables[j]->getShader()->setFloat("alpha", alpha);
+			}
 			glDrawElements(GL_TRIANGLES, renderables[j]->getCount(), GL_UNSIGNED_INT, nullptr);
 		}
 	}
@@ -100,12 +112,10 @@ void Renderer::flush() {
 	for (int i = 0; i < MAX_MODELS; i++) {
 		renderables[i] = nullptr;
 	}
-	if (inScene) {
-		endScene();
-	}
 	if (matrices.size() > 0) {
 		matrices.erase(matrices.begin(), matrices.end());
 	}
+	currentIndex = 0;
 }
 
 // Beendet die Szene

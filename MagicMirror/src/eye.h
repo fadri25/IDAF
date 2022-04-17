@@ -3,6 +3,7 @@
 #include <vec2.hpp>
 #include <vec4.hpp>
 
+// Repräsentiert ein Auge
 struct Eye {
 
 	bool valid = false;

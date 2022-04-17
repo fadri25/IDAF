@@ -13,6 +13,7 @@ class Renderer {
 	static Renderable** renderables;
 	static int currentIndex;
 	static bool inScene;
+	static float fadeInAlpha;
 
 public:
 	Renderer() = delete;
@@ -23,10 +24,12 @@ public:
 	static void submitMatrices(const std::vector<glm::mat4>& m);
 	static void submit(Renderable* r);
 
+	static void setFadeInAlpha(float alpha);
+
 	static void beginScene();
 	static void clear();
 	static void render();
-	static void renderModelsWithMatrices();
+	static void renderModelsWithMatrices(bool fade = false, float alpha = 1.0f);
 	static void flush();
 	static void endScene();
 

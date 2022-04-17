@@ -47,6 +47,7 @@ void Camera::unlock() {
 	locked = false;
 }
 
+// Gibt Distanz zu der Projektionsebene an den Aufrufer zurück
 float Camera::getDistanceToProjectionPlane(float width) const {
 	
 	float half = width * 0.5f;

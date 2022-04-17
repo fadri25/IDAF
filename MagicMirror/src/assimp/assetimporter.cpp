@@ -18,15 +18,14 @@ namespace assetimporter {
 	
 	std::string checkTexturePath(const std::string& aPath, const std::string& dir) {
 
-		int start = aPath.find_last_of('/');
+		int start = aPath.find_last_of('\\');
 
 		if (start == std::string::npos) {
 			return dir + aPath;
 		}
 
-		int end = aPath.find_last_of('.');
 
-		return dir + aPath.substr(start, end - start);
+		return dir + aPath.substr(start + 1);
 	}
 
 	std::vector<Texture> loadTextures(aiMaterial* mat, aiTextureType type, std::string name) {

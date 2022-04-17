@@ -49,10 +49,11 @@ public:
 
 	void setShader(Shader* s);
 
-	void createTexture(int w, int h, const char* data = nullptr);
-
 	int getCount() const override;
 	
 	inline int getPosition() const { return position; }
 	inline Texture* getTexture() { return tex; }
+
+	Shader* getShader() const override;
+
 };
