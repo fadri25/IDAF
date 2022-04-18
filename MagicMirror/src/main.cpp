@@ -37,7 +37,7 @@
 
 #define LOG(x) printf(#x + "\n")
 
-bool debug = true;
+bool debug = false;
 
 int frames = 0;
 
@@ -303,7 +303,7 @@ int main() {
 	cv::utils::logging::setLogLevel(cv::utils::logging::LogLevel::LOG_LEVEL_SILENT);
 
 
-	cv::VideoCapture cap(0);
+	cv::VideoCapture cap("http://169.254.104.153:8080/?action=stream");
 	cap.set(cv::CAP_PROP_FRAME_WIDTH, 1080);
 	cap.set(cv::CAP_PROP_FRAME_HEIGHT, 720);
 

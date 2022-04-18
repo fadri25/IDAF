@@ -1,0 +1,17 @@
+newmtl Tropfenmaterial
+illum 7
+Kd 0.815686 0.815686 0.815686
+adobe_interior_color 1 1 1
+Ni 1.6
+adobe_density 0
+Tr 0.51
+d 0.49
+Ka 0 0 0
+Ke 0 0 0
+Pm 0
+adobe_translucence 0
+Pr 0.5
+Ns 16
+Ks 1 1 1
+adobe_glow 0
+map_Kd traene/Tropfenmaterial_baseColor.png

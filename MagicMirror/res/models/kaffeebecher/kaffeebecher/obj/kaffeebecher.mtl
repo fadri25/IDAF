@@ -1,0 +1,37 @@
+newmtl Bechermaterial Layer Stack
+illum 7
+Kd 0.815686 0.815686 0.815686
+adobe_interior_color 1 1 1
+Ni 1.6
+adobe_density 0
+Tr 0
+d 1
+Ka 0 0 0
+Ke 0 0 0
+map_Pm kaffeebecher/Bechermaterial Layer Stack_metallic.png
+adobe_map_translucence kaffeebecher/Bechermaterial Layer Stack_translucence.png
+map_Pr kaffeebecher/Bechermaterial Layer Stack_roughness.png
+Ns 16
+Ks 1 1 1
+adobe_glow 0
+map_Kd kaffeebecher/Bechermaterial Layer Stack_baseColor.png
+norm kaffeebecher/Bechermaterial Layer Stack_normal.jpg
+
+newmtl Deckelmaterial
+illum 7
+Kd 0.854306 0.854306 0.854306
+adobe_interior_color 1 1 1
+Ni 1.6
+adobe_density 0
+Tr 0
+d 1
+Ka 0 0 0
+Ke 0 0 0
+Pm 0
+adobe_translucence 0
+Pr 0.3849
+Ns 16
+Ks 1 1 1
+adobe_glow 0
+map_Kd kaffeebecher/Deckelmaterial_baseColor.png
+norm kaffeebecher/Deckelmaterial_normal.jpg

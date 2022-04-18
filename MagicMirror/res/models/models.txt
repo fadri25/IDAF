@@ -1,1 +1,4 @@
-kaffeebecher.obj
+monkey
+glasses
+cylinder
+beard

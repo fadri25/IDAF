@@ -1,0 +1,13 @@
+Model machen
+
+In Editmode "u" drücken -> smart projection
+Im Feld Islands Wert auf 0.01 setzten und OK
+
+Für Model neues Material erstellen und Farbquelle auf Image Texture stellen
+
+Neue Texture erstellen und als die Textur des Materials einstellen
+
+
+Beim Exportieren zuerst textur in ordner mit selbem namen wie das Objekt speichern
+Objekt als Wavefont (.obj) exportieren in den selben ordner
+(Mit Grouping für Vertex, UVs, Normals usw.)

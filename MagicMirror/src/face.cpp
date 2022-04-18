@@ -102,6 +102,9 @@ float Face::getRoll() const {
 glm::vec2 Face::getPointCoordinates(int position) const {
 
 	glm::vec2 coords;
+	float dx = 0.0f;
+	float dy = 0.0f;
+
 	switch (position) {
 
 		case Model::Position::CENTER: 
@@ -114,7 +117,7 @@ glm::vec2 Face::getPointCoordinates(int position) const {
 			coords.y = rect.y;
 			break;
 
-		case Model::Position::BETWEEN_EYES:
+		case Model::Position::BETWEEN_EYES: {
 
 			glm::vec2 lc(0.0f);
 			glm::vec2 rc(0.0f);
@@ -140,12 +143,20 @@ glm::vec2 Face::getPointCoordinates(int position) const {
 				lc = left.getCenter();
 				rc = right.getCenter();
 			}
-			
-			float dx = rc.x - lc.x;
-			float dy = rc.y - lc.y;
+
+			dx = rc.x - lc.x;
+			dy = rc.y - lc.y;
 
 			coords.x = lc.x + dx * 0.5f;
 			coords.y = lc.y + dy * 0.5f;
+
+			break;
+		}
+
+		case Model::Position::CHINN :
+
+			coords.x = rect.x + rect.z * 0.5f;
+			coords.y = rect.y + rect.w;
 
 			break;
 	}

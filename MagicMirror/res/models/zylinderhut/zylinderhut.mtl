@@ -1,0 +1,69 @@
+newmtl Standardmaterial 2
+illum 7
+Kd 0.815686 0.815686 0.815686
+Ni 1.6
+Tr 0
+d 1
+Ka 0 0 0
+Ke 0 0 0
+Pm 0
+Pr 0.4
+Ns 16
+Ks 1 1 1
+map_Kd zylinderhut/Standardmaterial 2_baseColor.png
+
+newmtl Standardmaterial 7
+illum 7
+Kd 0.815686 0.815686 0.815686
+Ni 1.6
+Tr 0
+d 1
+Ka 0 0 0
+Ke 0 0 0
+Pm 0
+Pr 0.4
+Ns 16
+Ks 1 1 1
+map_Kd zylinderhut/Standardmaterial 7_baseColor.png
+
+newmtl Standardmaterial 3
+illum 7
+Kd 0.815686 0.815686 0.815686
+Ni 1.6
+Tr 0
+d 1
+Ka 0 0 0
+Ke 0 0 0
+Pm 0
+Pr 0.4
+Ns 16
+Ks 1 1 1
+map_Kd zylinderhut/Standardmaterial 3_baseColor.png
+
+newmtl Standardmaterial 4
+illum 7
+Kd 0.815686 0.815686 0.815686
+Ni 1.6
+Tr 0
+d 1
+Ka 0 0 0
+Ke 0 0 0
+Pm 0
+Pr 0.4
+Ns 16
+Ks 1 1 1
+map_Kd zylinderhut/Standardmaterial 4_baseColor.png
+
+newmtl Standardmaterial 6
+illum 7
+Kd 0.815686 0.815686 0.815686
+Ni 1.6
+Tr 0
+d 1
+Ka 0 0 0
+Ke 0 0 0
+Pm 0
+Pr 0.4
+Ns 16
+Ks 1 1 1
+map_Kd zylinderhut/Standardmaterial 6_baseColor.png

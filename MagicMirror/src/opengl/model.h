@@ -18,7 +18,8 @@ public:
 	enum Position {
 		CENTER,
 		TOP,
-		BETWEEN_EYES
+		BETWEEN_EYES,
+		CHINN
 	};
 
 private:
