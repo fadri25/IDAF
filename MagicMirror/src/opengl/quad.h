@@ -42,5 +42,6 @@ public:
 	Shader* getShader() const override;
 	Material* getMaterial() const override;
 
+	void setShader(Shader* shader);
 
 };

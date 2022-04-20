@@ -31,9 +31,9 @@ Window::Window(const char* title, int x, int y, int w, int h) : x(x), y(y), w(w)
 	w = glfwGetVideoMode(monitor)->width;
 	h = glfwGetVideoMode(monitor)->height;
 
-
 	window = glfwCreateWindow(w, h, title, nullptr, nullptr);
 	glfwMakeContextCurrent(window);
+	
 
 	if (glewInit() != GLEW_OK) {
 		printf("failed to load glew!\n");

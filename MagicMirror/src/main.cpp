@@ -39,9 +39,15 @@
 
 bool debug = false;
 
+bool keyOnePressed = false;
+bool keyTwoPressed = false;
+bool keyThreePressed = false;
+
+
 int frames = 0;
 
 Model* model = nullptr;
+Quad* quad = nullptr;
 Camera* camera;
 Shader* shader = nullptr;
 Shader* fadeShader = nullptr;
@@ -67,11 +73,11 @@ int midX = 0;
 int midY = 0;
 
 void startFade(int increment);
-
+void isItTimeToParty();
 
 void keyFunc(GLFWwindow* window, int key, int scan, int action, int mods) {
 
-	if (action == GLFW_PRESS || action == GLFW_REPEAT) {
+	if (action == GLFW_PRESS /* || action == GLFW_REPEAT*/) {
 		if (debug) {
 			if (key == GLFW_KEY_A) {
 				model->rotate({ 0.0f, 0.9f, 0.0f }, -3.141592f / 64.0f);
@@ -120,25 +126,47 @@ void keyFunc(GLFWwindow* window, int key, int scan, int action, int mods) {
 			}
 		}
 
+		
+
 		if (!inFade) {
 			if (key == GLFW_KEY_N) {
 				inCycle = false;
 				startFade(1);
 				elapsedTime = 0.0f;
+				keyOnePressed = true;
+				isItTimeToParty();
 			}
 			else if (key == GLFW_KEY_P) {
 				inCycle = false;
 				startFade(-1);
 				elapsedTime = 0.0f;
+				keyTwoPressed = true;
+				isItTimeToParty();
 			}
 			else if (key == GLFW_KEY_C) {
+				keyThreePressed = true;
+				isItTimeToParty();
+
 				if (inCycle) {
 					return;
 				}
 
 				inCycle = true;
 				elapsedTime = 0.0f;
-
+			}
+		}
+		else {
+			if (key == GLFW_KEY_N) {
+				keyOnePressed = true;
+				isItTimeToParty();
+			}
+			else if (key == GLFW_KEY_P) {
+				keyTwoPressed = true;
+				isItTimeToParty();
+			}
+			else if (key == GLFW_KEY_C) {
+				keyThreePressed = true;
+				isItTimeToParty();
 			}
 		}
 
@@ -153,7 +181,33 @@ void keyFunc(GLFWwindow* window, int key, int scan, int action, int mods) {
 
 	}
 
+	if (action == GLFW_RELEASE) {
+		if (key == GLFW_KEY_N) {
+			keyOnePressed = false;
+		}
+		else if (key == GLFW_KEY_P) {
+			keyTwoPressed = false;
+		}
+		else if (key == GLFW_KEY_C) {
+			keyThreePressed = false;
+		}
+	}
+
 }
+
+void isItTimeToParty() {
+	if (keyOnePressed && keyTwoPressed && keyThreePressed) {
+		if (!Renderer::inDisco()) {
+			Renderer::getReadyToParty();
+			quad->setShader(shader);
+		}
+		else {
+			Renderer::crashParty();
+			quad->setShader(flatShader);
+		}
+	}
+}
+
 
 
 // Lädt alle Modelle
@@ -205,14 +259,10 @@ void startFade(int increment) {
 	else if (nextModel == -1) {
 		nextModel = models.size() - 1;
 	}
-	//model->setShader(fadeShader);
-	//models[nextModel]->setShader(fadeShader);
 }
 
 // Beendet Übergangsverlauf
 void endFade() {
-	//model->setShader(shader);
-	//models[nextModel]->setShader(shader);
 	swapModels();
 	inFade = false;
 }
@@ -272,6 +322,8 @@ void terminate() {
 		delete models[i];
 	}
 
+	delete quad;
+
 	delete shader;
 	delete fadeShader;
 	delete flatShader;
@@ -285,9 +337,8 @@ int main() {
 	window.setKeyFunc(keyFunc);
 	shader = new Shader("res/shaders/shader");
 	flatShader = new Shader("res/shaders/flatshader");
-	//fadeShader = new Shader("res/shaders/fadeshader");
 
-	Renderer::init(camera);
+	Renderer::init(camera, &delta);
 
 	loadApplicationSettings("res/settings.txt", &cycleDuration, &fadeDuration);
 	loadModels(shader);
@@ -324,9 +375,9 @@ int main() {
 
 
 	// Fläche für die Darstellung des Kamerabildes erstellen und positionieren
-	Quad quad(1.0f * camera->getAspectRatio(), 1.0f, flatShader);
-	quad.translate({ 0.0f, 0.0f, -10.0f });
-	quad.scale({ 11.55f, 11.55f, 0.0f }); // 8.7f
+	quad = new Quad(1.0f * camera->getAspectRatio(), 1.0f, flatShader);
+	quad->translate({ 0.0f, 0.0f, -10.0f });
+	quad->scale({ 11.55f, 11.55f, 0.0f }); // 8.7f
 	Texture* tex = nullptr;
 
 	// Neurale Netzwerke für die Gesichts- & Augenerkennung laden
@@ -546,10 +597,10 @@ int main() {
 			delete tex;
 
 		tex = Texture::createTextureFromData(frameWidth, frameHeight, GL_BGR, frame.data);
-		quad.setTexture(tex);
+		quad->setTexture(tex);
 
 		Renderer::beginScene();
-		Renderer::submit(&quad);
+		Renderer::submit(quad);
 		Renderer::render();
 		Renderer::endScene();
 

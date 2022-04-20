@@ -96,3 +96,8 @@ Shader* Quad::getShader() const {
 Material* Quad::getMaterial() const {
 	return nullptr;
 }
+
+void Quad::setShader(Shader* shader) {
+	this->shader = shader;
+}
+
