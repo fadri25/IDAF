@@ -1,0 +1,20 @@
+Für unser IDPA-Projekt haben wir verschiedene Codebibliotheken verwendet, welche frei zugänglich 
+und Kostenfrei sind, um es uns zu ermöglichen dieses Projekt zu realisieren.
+
+Zu diesen Bibliotheken gehören:
+	- GLEW und GLFW für die Implementierung der 3D-Render-API (Open GL)
+	- Assimp um 3D-Modelle aus geläufigen Dateiformaten zu laden
+	- Glm für mathematische Berechnungen mit Vektoren und Matrizen im 3 dimensionalen Raum
+	- OpenCv für die Gesichts- und Augenerkennung
+	- Stbi um Bilddateien zu laden
+
+Der Code der in den .h, .cpp, .vert, .frag und .ino Dateien in den Ordenern 
+MagigMirro/src (inlusive Unterordner), MagicMirror/res/shaders und MagicMirror/arduino definiert* ist
+wurde komplett von uns selbst entwickelt.
+
+
+
+
+* Definiert bedeutet: Makro-, Klassen-, Funktions- und Variabelndefinitionen und Deklarationen. 
+In den Funktionsdefinitionen werden Variablen und konstante Werte von den Codebibliotheken benutzt, 
+sowie deren Funktionen aufgerufen. 

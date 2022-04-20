@@ -16,6 +16,10 @@ uniform float roughness;
 uniform float specularStrength;
 uniform vec3 cameraPos;
 
+uniform vec3 lightColor;
+uniform vec3 lightPos;
+uniform float ambientStrength;
+
 out vec4 color;
 
 
@@ -23,11 +27,8 @@ out vec4 color;
 
 void main(){
 
-	vec3 lightColor = vec3(1.0, 1.0, 1.0);
-	vec3 lightPos = vec3(0.0, 0.0, -0.5);
 
 	// Umgebungsbeleuchtung 
-	float ambientStrength = 0.4;
     vec3 ambient = ambientStrength * lightColor;
 	
 	// Normalisieren des Normalvektors & des Lichtvektors

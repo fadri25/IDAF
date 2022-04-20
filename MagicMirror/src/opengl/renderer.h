@@ -38,5 +38,7 @@ public:
 	static void flush();
 	static void endScene();
 
+private:
+	static void setShaderUniforms(Shader* shader);
 
 };

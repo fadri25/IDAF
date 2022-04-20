@@ -1,0 +1,61 @@
+Funktionen welche den selben Namen wie die Klasse (class / struct) haben, in der sie sich befinden,
+werden als Constructor bezeichnet. Diese Funktionen alozieren den benötigten Arbeitsspeicher für
+eine Instanz (auch Objekt gennant) dieser Klasse, und initialisieren dessen Variablen.
+Beispiel:
+	- In .h Dateien: 		Shader();
+	- In .cpp Dateien:	Shader::Shader() {}
+
+Funktionen welche den selben Namen wie die Klasse (class / struct) haben, in der sie sich befinden,
+mit einem Tilda (~) als Präfix, werden als Destructor bezeichnet. Diese Funktionen geben den belegten
+Arbeitsspeicher einer Instanz dieser Klasse wieder frei, damit dieser für andere Daten verwendet werden kann.
+Beispiel:
+	- In .h Dateien: 		~Shader();
+	- In .cpp Dateien:	Shader::~Shader() {}
+
+
+Frame:
+Ein Bild, welches auf dem Bildschirm dargestellt wird.
+
+Array:
+Eine Liste von Werten.
+
+Shader/Shaderprogramm:
+Ein Programm welches auf dem Grafikprozessor ausführbar ist und zur Berechnung von Positionskoordinaten im
+"Bildschirmraum", und zur Berechnung von Farbwerten der Pixel dient. 
+Einfach gesagt: Shaders produzieren das Bild, das wir auf dem Monitor sehen.
+
+Draw call:
+Den Befehl an den Grafikprozessor die ausgewählten Daten mithilfe eines Shaderprogrammes zu visualisieren.
+
+
+Renderer:
+Der Teil des Programmes, welcher dafür sorgt, dass ein Shaderprogramm und alle notwendigen
+Daten für den draw call ausgewählt wurden, und bestimmte Werte an das Shaderprogramm übergibt.
+
+Pointer:
+Ein Pointer ist eine Variable welche nicht einen Wert selber speichert, sondern eine Arbeitsspeicheradresse,
+bei welcher sich die Daten befinden.
+
+Textur:
+Eine Bilddatei welche auf ein 3D-Modell projeziert werden kann.
+
+
+@arg:
+Verweist auf ein Argument der Funktionsdefinition.
+Beispiel:
+	// #arg x
+	void foo(int x) {
+		// Code
+	}
+
+@param:
+Verweist auf ein Parameter eines Funtionaufrufes.
+Beispiel:
+	// @param x
+	void bar(x);
+
+@member:
+Verweist auf eine Variable, welche zu einer Instanz einer Klasse gehört.
+
+@static:
+Verweist auf eine Variable, welche als "static" deklariert ist.

@@ -98,9 +98,8 @@ void Renderer::renderModelsWithMatrices(float alpha) {
 			renderables[j]->bindWithMatrix(mvp, matrices[i]);
 			Shader* shader = renderables[j]->getShader();
 			shader->setFloat3("cameraPos", cam->getPosition());
-			
 			shader->setFloat("alpha", alpha);
-			
+			setShaderUniforms(shader);
 
 			glDrawElements(GL_TRIANGLES, renderables[j]->getCount(), GL_UNSIGNED_INT, nullptr);
 		}
@@ -123,4 +122,11 @@ void Renderer::flush() {
 void Renderer::endScene() {
 	cam->unlock();
 	inScene = false;
+}
+
+// Übergibt Werte an Shader @arg shader
+void Renderer::setShaderUniforms(Shader* shader) {
+	shader->setFloat3("lightColor", lightColor);
+	shader->setFloat3("lightPos", lightPos);
+	shader->setFloat("ambientStrength", ambientStrength);
 }
