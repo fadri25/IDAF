@@ -15,7 +15,7 @@
 namespace assetimporter {
 
 
-	
+	// Stellt sicher, dass der Dateipfad der Texturen richitg ist
 	std::string checkTexturePath(const std::string& aPath, const std::string& dir) {
 
 		int start = aPath.find_last_of('\\');
@@ -28,6 +28,7 @@ namespace assetimporter {
 		return dir + aPath.substr(start + 1);
 	}
 
+	//Lädt Texturen eines Materials
 	std::vector<Texture> loadTextures(aiMaterial* mat, aiTextureType type, std::string name) {
 
 		std::vector<Texture> textures;
@@ -40,11 +41,13 @@ namespace assetimporter {
 		return textures;
 	}
 
+	// Lädt ein 3D-Modell
 	void loadModel(const std::string& dir, 
 					const std::string& file, 
 					std::vector<Vertex>& vertices, 
 					std::vector<uint32_t>& indices, 
-					std::vector<std::string>& textures) {
+					std::vector<std::string>& textures,
+					Material& material) {
 
 		std::string fullPath = dir + file;
 		const aiScene* scene = aiImportFile(fullPath.c_str(), aiProcessPreset_TargetRealtime_MaxQuality);
@@ -57,34 +60,38 @@ namespace assetimporter {
 
 		
 
-		//models.reserve(scene->mNumMeshes);
 
 		for (uint32_t i = 0; i < scene->mNumMeshes; i++) {
 
 			aiMesh* mesh = scene->mMeshes[i];
 			
-			//std::vector<Texture> textures;
-
-			//std::vector<Vertex> vertices;
 			vertices.reserve(mesh->mNumVertices);
 
+			// Oberflächenwerte des Materiales laden
 			aiMaterial* mat = scene->mMaterials[mesh->mMaterialIndex];
 			aiColor4D specular;
 			aiColor4D diffuse;
 			aiColor4D ambient;
 			float shininess;
+			float specularStrength;
+			float roughness;
 
 			aiGetMaterialColor(mat, AI_MATKEY_COLOR_SPECULAR, &specular);
 			aiGetMaterialColor(mat, AI_MATKEY_COLOR_DIFFUSE, &diffuse);
 			aiGetMaterialColor(mat, AI_MATKEY_COLOR_AMBIENT, &ambient);
 			aiGetMaterialFloat(mat, AI_MATKEY_SHININESS, &shininess);
+			aiGetMaterialFloat(mat, AI_MATKEY_SPECULAR_FACTOR, &specularStrength);
+			aiGetMaterialFloat(mat, AI_MATKEY_ROUGHNESS_FACTOR, &roughness);
 
-			Material materieal(
+
+			material = Material(
 				{ specular.r, specular.g, specular.b, shininess },
 				{ diffuse.r, diffuse.g, diffuse.b, diffuse.a },
-				{ ambient.r, ambient.g, ambient.b, ambient.a }
+				{ ambient.r, ambient.g, ambient.b, ambient.a },
+				roughness, specularStrength
 			);
 
+			// Scheitelpunktinformationen laden
 			for (uint32_t j = 0; j < mesh->mNumVertices; j++) {
 
 				aiVector3D pos = mesh->mVertices[j];
@@ -107,9 +114,7 @@ namespace assetimporter {
 
 			}
 
-			//std::vector<uint32_t> indices;
 			indices.reserve(mesh->mNumFaces * 3u);
-
 			for (uint32_t j = 0; j < mesh->mNumFaces; j++) {
 				
 				//if (mesh->mFaces[j].mNumIndices < 3u) continue;
@@ -122,6 +127,7 @@ namespace assetimporter {
 			
 			}
 
+			// Texturpfade auslesen
 			if (mesh->mMaterialIndex >= 0) {
 				aiMaterial* ai_mat = scene->mMaterials[mesh->mMaterialIndex];
 
@@ -143,23 +149,15 @@ namespace assetimporter {
 
 						textures.push_back(checkTexturePath(path.C_Str(), dir));
 					}
+					if (pMaterial->GetTexture(aiTextureType_HEIGHT, 0, &path, NULL, NULL, NULL, NULL, NULL) == AI_SUCCESS) {
+						textures.push_back(checkTexturePath(path.C_Str(), dir));
+					}
 				}
 			}
 
-			/*if (texFile.length() == 0) {
-				std::string texFileName = "res/models/";
-				
-				int start = file.find_last_of('/');
-				int end = file.find_last_of('.');
-				texFileName = file.substr(start, end - start);
-				
-				texFile += texFileName + ".png";
-			}*/
-			//models.emplace_back(Model(&vertices[0], vertices.size(), &indices[0], indices.size(), fullPath, nullptr));
 		}
 
-
-
+		// Belegten Arbeitsspeicher freigeben
 		aiReleaseImport(scene);
 	}
 

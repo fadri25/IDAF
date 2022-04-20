@@ -14,7 +14,11 @@ Renderable** Renderer::renderables;
 int Renderer::currentIndex = 0;
 
 bool Renderer::inScene = false;
-float Renderer::fadeInAlpha = 1.0f;
+
+glm::vec3 Renderer::lightPos = glm::vec3(0.0f, 0.0f, -0.5f);
+glm::vec3 Renderer::lightColor = glm::vec3(1.0f);
+float Renderer::ambientStrength = 0.4f;
+
 
 
 // Initialisierung
@@ -44,12 +48,6 @@ void Renderer::submit(Renderable* r) {
 
 	renderables[currentIndex] = r;
 	currentIndex++;
-}
-
-
-// Setzt Wert von @static fadeInAlpha
-void Renderer::setFadeInAlpha(float alpha) {
-	fadeInAlpha = alpha;
 }
 
 
@@ -86,7 +84,7 @@ void Renderer::render() {
 }
 
 // Macht für jedes Modell einen draw call für jede Transformationsmatrix in @static matrices
-void Renderer::renderModelsWithMatrices(bool fade, float alpha) {
+void Renderer::renderModelsWithMatrices(float alpha) {
 	if (!inScene) {
 		return;
 	}
@@ -98,9 +96,12 @@ void Renderer::renderModelsWithMatrices(bool fade, float alpha) {
 
 		for (int j = 0; j < currentIndex; j++) {
 			renderables[j]->bindWithMatrix(mvp, matrices[i]);
-			if (fade) {
-				renderables[j]->getShader()->setFloat("alpha", alpha);
-			}
+			Shader* shader = renderables[j]->getShader();
+			shader->setFloat3("cameraPos", cam->getPosition());
+			
+			shader->setFloat("alpha", alpha);
+			
+
 			glDrawElements(GL_TRIANGLES, renderables[j]->getCount(), GL_UNSIGNED_INT, nullptr);
 		}
 	}

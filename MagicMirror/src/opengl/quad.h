@@ -40,6 +40,7 @@ public:
 	void setTexture(Texture* tex);
 
 	Shader* getShader() const override;
+	Material* getMaterial() const override;
 
 
 };

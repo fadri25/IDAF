@@ -11,7 +11,8 @@ namespace assetimporter {
 					const std::string& file, 
 					std::vector<Vertex>& vertices,
 					std::vector<uint32_t>& indices, 
-					std::vector<std::string>& textures);
+					std::vector<std::string>& textures,
+					Material& material);
 
 
 

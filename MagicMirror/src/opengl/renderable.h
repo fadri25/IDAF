@@ -3,6 +3,7 @@
 #include <mat4x4.hpp>
 
 #include "shader.h"
+#include "material.h"
 
 // Rein virtuelle Klasse (Bedeutet es ist nicht möglich eine Instanz dieser Klasse direkt zu erstellen.
 //							Es können nur Instanzen von Klassen, welche diese Klasse erweitern, erstellt werden)
@@ -19,4 +20,5 @@ public:
 	virtual int getCount() const = 0;
 
 	virtual Shader* getShader() const = 0;
+	virtual Material* getMaterial() const = 0;
 };

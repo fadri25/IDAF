@@ -1,0 +1,5 @@
+lightPos 0.0,0.0,-0.5
+lightColor 1.0,1.0,1.0
+ambientStrength 0.4
+fadeDuration 3.0
+cycleDuration 15.0

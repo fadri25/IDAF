@@ -5,12 +5,10 @@ layout(location = 2) in vec2 uv;
 
 uniform mat4 mvp;
 uniform mat4 model;
-uniform float alpha;
 
 out vec3 f_normal;
 out vec2 f_uv;
 out vec4 fragPos;
-out float f_alpha;
 
 void main() {
 
@@ -22,5 +20,4 @@ void main() {
 	// Werte an Fragmentshader weitergeben
 	f_normal = normal;
 	f_uv = uv;
-	f_alpha = alpha;
 }

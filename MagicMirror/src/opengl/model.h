@@ -7,6 +7,7 @@
 #include "shader.h"
 
 #include "renderable.h"
+#include "material.h"
 
 
 // Repräsentiert ein 3D-Modell
@@ -29,13 +30,15 @@ private:
 	Texture* tex;
 	Shader* shader = nullptr;
 	glm::vec3 scaleVector;
+	Material material;
 	int position;
 
 
 public:
 	Model();
 	Model(std::vector<Vertex> verteces, std::vector<uint32_t> indeces, Shader* shader);
-	Model(std::vector<Vertex> verteces, std::vector<uint32_t> indeces, const std::string& texFile, Shader* shader, int position = CENTER);
+	Model(std::vector<Vertex> verteces, std::vector<uint32_t> indeces, const std::string& texFile, Shader* shader, 
+		const Material& material ,int position = CENTER);
 
 	~Model();
 
@@ -56,5 +59,7 @@ public:
 	inline Texture* getTexture() { return tex; }
 
 	Shader* getShader() const override;
+	Material* getMaterial() const override;
+
 
 };

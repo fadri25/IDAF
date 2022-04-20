@@ -52,12 +52,12 @@ int currentModel = 0;
 int nextModel = currentModel + 1;
 bool inCycle = true;
 bool inFade = false;
-static const float CYCLE_DURATION = 10.0f;
-static const float FADE_DURATION = 5.0f;
+static float cycleDuration = 10.0f;
+static float fadeDuration = 5.0f;
 float elapsedTime = 0.0f;
 
 
-static const int MAX_FACES = 10;
+static const int MAX_MODELS = 10;
 
 DeltaTime delta;
 
@@ -181,11 +181,13 @@ void loadModels(Shader* shader) {
 
 		std::vector<Vertex> vertices;
 		std::vector<uint32_t> indices;
+		Material material;
+
 		std::string modelDir = dir + modelList[i] + "/";
 		std::string modelFile = modelDir + modelList[i] + ".obj";
 		std::vector<std::string> textures;
-		assetimporter::loadModel(modelDir, modelList[i] + ".obj", vertices, indices, textures);
-		models.emplace_back(new Model(vertices, indices, textures[0], shader, position));
+		assetimporter::loadModel(modelDir, modelList[i] + ".obj", vertices, indices, textures, material);
+		models.emplace_back(new Model(vertices, indices, textures[0], shader, material, position));
 	}
 
 }
@@ -209,14 +211,14 @@ void startFade(int increment) {
 	else if (nextModel == -1) {
 		nextModel = models.size() - 1;
 	}
-	model->setShader(fadeShader);
-	models[nextModel]->setShader(fadeShader);
+	//model->setShader(fadeShader);
+	//models[nextModel]->setShader(fadeShader);
 }
 
 // Beendet Übergangsverlauf
 void endFade() {
-	model->setShader(shader);
-	models[nextModel]->setShader(shader);
+	//model->setShader(shader);
+	//models[nextModel]->setShader(shader);
 	swapModels();
 	inFade = false;
 }
@@ -275,6 +277,7 @@ void terminate() {
 	for (int i = models.size() -1; i > -1; i--) {
 		delete models[i];
 	}
+
 	delete shader;
 	delete fadeShader;
 	delete flatShader;
@@ -288,22 +291,23 @@ int main() {
 	window.setKeyFunc(keyFunc);
 	shader = new Shader("res/shaders/shader");
 	flatShader = new Shader("res/shaders/flatshader");
-	fadeShader = new Shader("res/shaders/fadeshader");
+	//fadeShader = new Shader("res/shaders/fadeshader");
 
 	Renderer::init(camera);
 
+	loadApplicationSettings("res/settings.txt", &cycleDuration, &fadeDuration);
 	loadModels(shader);
 	model = models[currentModel];
 
 
-	Face faces[MAX_FACES];
+	Face faces[MAX_MODELS];
 	int currentFace = 0;
 
 
 	cv::utils::logging::setLogLevel(cv::utils::logging::LogLevel::LOG_LEVEL_SILENT);
 
-
-	cv::VideoCapture cap("http://169.254.104.153:8080/?action=stream");
+	// Verbindung zu Kamera aufbauen
+	cv::VideoCapture cap(0 /*"http://169.254.104.153:8080/?action=stream"*/);
 	cap.set(cv::CAP_PROP_FRAME_WIDTH, 1080);
 	cap.set(cv::CAP_PROP_FRAME_HEIGHT, 720);
 
@@ -318,19 +322,20 @@ int main() {
 	cv::Mat frame;
 
 
-	float scale = 1.0f;// 0.05f;
+	float scale = 1.0f;
 
 	float near = camera->getNear();
 	float dist = camera->getZdistance();
-	float d2 = dist - near;
 	float distToFace = 10.0f + near;
 
 
+	// Fläche für die Darstellung des Kamerabildes erstellen und positionieren
 	Quad quad(1.0f * camera->getAspectRatio(), 1.0f, flatShader);
 	quad.translate({ 0.0f, 0.0f, -10.0f });
 	quad.scale({ 11.55f, 11.55f, 0.0f }); // 8.7f
 	Texture* tex = nullptr;
 
+	// Neurale Netzwerke für die Gesichts- & Augenerkennung laden
 	cv::CascadeClassifier faceCascade;
 	faceCascade.load("haarcascades/haarcascade_frontalface_default.xml");
 
@@ -352,37 +357,40 @@ int main() {
 	std::vector<cv::Point> facePoints;
 
 
-
+	// Hauptschlaufe
 	while (true) {
-		//Timer timer("main loop");
 
+		// Nächstes Bild von der Kamera lesen
 		cap >> frame;
 		if (frame.empty()) {
 			printf("empty frame");
 			continue;
 		}
 
+		// Bild an der Y-Achse Spiegeln
 		cv::flip(frame, frame, 1);
 	
+		// Logik für Transparenzübergang und Auto-wechseltimer
 		float fadeInAlpha = 0.0f;
 		if (inFade) {
 			elapsedTime += delta.getDelta();
-			if (elapsedTime >= FADE_DURATION) {
+			if (elapsedTime >= fadeDuration) {
 				endFade();
 				elapsedTime = 0.0f;
 			}
 			else {
-				fadeInAlpha = elapsedTime / FADE_DURATION;
+				fadeInAlpha = elapsedTime / fadeDuration;
 			}
 		}
 		else if (inCycle) {
 			elapsedTime += delta.getDelta();
-			if (elapsedTime >= CYCLE_DURATION) {
+			if (elapsedTime >= cycleDuration) {
 				startFade(1);
 				elapsedTime = 0.0f;
 			}
 		}
 
+		
 		if ((float)delta >= 1.0f) {
 			//printf("fps = %i\n", frames);
 			//printf("delta = %f\n", (float)delta);
@@ -391,6 +399,8 @@ int main() {
 			delta--;
 		}
 		delta.update();
+
+		// Eventhandling
 		window.pollEvents();
 
 
@@ -398,22 +408,22 @@ int main() {
 		std::vector<cv::Rect> faceRects;
 		std::vector<cv::Rect> eyes;
 
-		// Create empyt image for grayscale and down sized version of original image
+		// Leere Bilder für Graustufe und Skalierte version des Kamerabildes
 		cv::Mat gray, smallImg;
 
-		// Convert image to grayscale
+		// Zu Graustufe konvertieren
 		cv::cvtColor(frame, gray, cv::COLOR_BGR2GRAY);
 		// Scale value
 		double cvScale = 4.0;
 		double fx = 1 / cvScale;
 
-		// Resize the grayscale mmage 
+		// Bild skalieren
 		cv::resize(gray, smallImg, cv::Size(), fx, fx, cv::INTER_LINEAR);
 		cv::equalizeHist(smallImg, smallImg);
 
 
 
-		// Detect faces in the scaled image
+		// Gesichter in Bild erkennen
 		faceCascade.detectMultiScale(smallImg, faceRects, 1.1, 5, 0, cv::Size(5, 5));
 		
 		if (facePoints.size() > 0) {
@@ -427,7 +437,7 @@ int main() {
 		cv::Scalar green = cv::Scalar(0, 255, 0);
 		cv::Scalar red = cv::Scalar(0, 0, 255);
 
-		// Iterate through rectangles around faces in the image
+		// Koordinaten verarbeiten
 		for (size_t i = 0; i < faceRects.size(); i++) {
 			cv::Rect r = faceRects[i];
 
@@ -437,8 +447,10 @@ int main() {
 			scaledUp.width = cvRound((r.x + r.width - 1) * cvScale);
 			scaledUp.height = cvRound((r.y + r.height - 1) * cvScale);
 
-
-			cv::rectangle(frame, cv::Point(scaledUp.x, scaledUp.y), cv::Point(scaledUp.width, scaledUp.height), blue, 3, 8, 0);
+			// Rechteck um das Gesicht zeichnen für Debugging
+			if (debug) {
+				cv::rectangle(frame, cv::Point(scaledUp.x, scaledUp.y), cv::Point(scaledUp.width, scaledUp.height), blue, 3, 8, 0);
+			}
 
 			cv::Point facePos;
 			facePos.x = (scaledUp.x + (scaledUp.width - scaledUp.x) / 2);
@@ -446,19 +458,20 @@ int main() {
 			facePoints.emplace_back(facePos);
 
 
-			if (currentFace < MAX_FACES) {
+			if (currentFace < MAX_MODELS) {
 				faces[currentFace].set({scaledUp.x, scaledUp.y, scaledUp.width - scaledUp.x, scaledUp.height - scaledUp.y });
 				currentFace++;
 			}
 			Face* face_ptr = &faces[currentFace - 1];
 
-			// Copy section where the face is in the original image
+			// Sektion des Gesichts in separates Bild kopieren um die Augenerkennung zu optimieren
 			smallImgROI = smallImg(r);
 
 
+			// Augen erkennen
 			eyeCascade.detectMultiScale(smallImgROI, eyes, 1.1, 3, 0, cv::Size(5, 5), cv::Size(30, 30));
 
-			// Draw circles around eyes
+			// Augenkoordinaten verarbeiten
 			for (size_t j = 0; j < eyes.size(); j++) {
 
 				cv::Rect nr = eyes[j];
@@ -467,8 +480,11 @@ int main() {
 				scaledUp.width = cvRound((r.x + nr.x + nr.width - 1) * cvScale);
 				scaledUp.height = cvRound((r.y + nr.y + nr.height - 1) * cvScale);
 
-				cv::rectangle(frame, cv::Point(scaledUp.x, scaledUp.y), cv::Point(scaledUp.width, scaledUp.height), green, 3, 8, 0);
-				
+				// Rechteck um Auge zeichnen
+				if (debug) {
+					cv::rectangle(frame, cv::Point(scaledUp.x, scaledUp.y), cv::Point(scaledUp.width, scaledUp.height), green, 3, 8, 0);
+				}
+
 				glm::vec4 f_rect = { scaledUp.x, scaledUp.y, scaledUp.width - scaledUp.x, scaledUp.height - scaledUp.y };
 				if (face_ptr->left.valid) {
 					face_ptr->right.set(f_rect);
@@ -478,6 +494,7 @@ int main() {
 				}
 			}
 
+			// Kontrollieren ob linkes und rechtes Auge in einem Gesicht nicht vertauscht sind
 			if (face_ptr->left.valid && face_ptr->right.valid) {
 				if (face_ptr->right.rect.x < face_ptr->left.rect.y) {
 					face_ptr->swapEyes();
@@ -489,6 +506,7 @@ int main() {
 		}
 
 
+		// Liste von Transformationsmatrizen vorbereiten
 		std::vector<glm::mat4> matrices;		
 		matrices.reserve(currentFace);
 		std::vector<glm::mat4> secondaryMatrices;
@@ -496,12 +514,11 @@ int main() {
 			secondaryMatrices.reserve(currentFace);
 		}
 
+		// Translationsvektor berechnen
 		for (int i = 0; i < currentFace; i++) {
 			Face* f = &faces[i];
 			
-			//float roll = f->getRoll();
 			glm::vec2 coords = f->getPointCoordinates(model->getPosition());
-			//printf("coords [%i]: %f %f\n", currentFace,  coords.x, coords.y);
 			
 			glm::vec3 endPos = convertToGLCoords(coords.x, coords.y);
 			float inverseScale = 1.0f / scale;
@@ -515,6 +532,7 @@ int main() {
 			m = glm::rotate(m, yaw, { 0.0f, 1.0f, 0.0f });
 			matrices.push_back(m);
 			
+			// In Tranparenzübergangsphase das selbe für das nächste 3D-Modell
 			if (inFade) {
 				glm::vec2 coords2 = f->getPointCoordinates(models[nextModel]->getPosition());
 				glm::vec3 endPos2 = convertToGLCoords(coords2.x, coords2.y);
@@ -528,6 +546,8 @@ int main() {
 			}
 		}
 
+
+		// Daten an Renderer übergeben und Drawcall ausführen
 		Renderer::clear();
 	
 		if (debug) {
@@ -548,15 +568,13 @@ int main() {
 		Renderer::submit(model);
 		
 		if (inFade) {
-			Renderer::renderModelsWithMatrices(true, 1.0f - fadeInAlpha);
-			//Renderer::endScene();
+			Renderer::renderModelsWithMatrices(1.0f - fadeInAlpha);
 			Renderer::flush();
 
-			//Renderer::beginScene();
 			Renderer::submitMatrices(secondaryMatrices);
 			Model* m = models[nextModel];
 			Renderer::submit((Renderable*)m);
-			Renderer::renderModelsWithMatrices(true, fadeInAlpha);
+			Renderer::renderModelsWithMatrices(fadeInAlpha);
 		}
 		else {
 			Renderer::renderModelsWithMatrices();
@@ -566,6 +584,7 @@ int main() {
 		Renderer::flush();
 		frames++;
 		
+
 		for (int i = 0; i < currentFace; i++)
 			faces[i].invalidate();
 		currentFace = 0;
@@ -580,7 +599,7 @@ int main() {
 	}
 
 
-	
+	// Arbeitsspeicher freigeben
 	Renderer::terminate();
 	terminate();
 

@@ -92,3 +92,7 @@ void Quad::setTexture(Texture* tex) {
 Shader* Quad::getShader() const {
 	return shader;
 }
+
+Material* Quad::getMaterial() const {
+	return nullptr;
+}

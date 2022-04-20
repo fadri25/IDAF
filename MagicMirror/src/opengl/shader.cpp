@@ -1,5 +1,6 @@
 #include "shader.h"
 
+
 #include "includegl.h"
 
 #include "../fileio.h"
@@ -69,15 +70,31 @@ int Shader::getUniformLocation(const char* name) const {
 }
 
 // Ladet einen einzelnen "float" wert in die gewünschte Variabel mit dem Namen in @arg name des Shaderprogramms
-void Shader::setFloat(const char* name, float v) {
+void Shader::setFloat(const char* name, float v) const {
 	int location = getUniformLocation(name);
+	if (location == -1) return;
 	glUniform1f(location, v);
+}
+
+// Lädt einen 3-Komponentenvektor in die gewünschte Variabel mit dem Namen in @arg name des Shaderprogramms
+void Shader::setFloat3(const char* name, const glm::vec3& v) const {
+	int location = getUniformLocation(name);
+	if (location == -1) return;
+	glUniform3f(location, v.x, v.y, v.z);
+}
+
+// Lädt einen 4-Komponentenvektor in die gewünschte Variabel mit dem Namen in @arg name des Shaderprogramms
+void Shader::setFloat4(const char* name, const glm::vec4& v) const {
+	int location = getUniformLocation(name);
+	if (location == -1) return;
+	glUniform4f(location, v.x, v.y, v.z, v.w);
 }
 
 
 // Ladet die Daten einer 4X4 Matrix in die gewünschte Variabel mit dem Namen von @arg name des Shaderprogramms
-void Shader::setUniformMat4(const char* name, const glm::mat4& m) {
+void Shader::setUniformMat4(const char* name, const glm::mat4& m) const {
 	int location = getUniformLocation(name);
+	if (location == -1) return;
 	glUniformMatrix4fv(location, 1, GL_FALSE, &m[0][0]);
 }
 

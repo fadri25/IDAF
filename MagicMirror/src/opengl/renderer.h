@@ -13,9 +13,15 @@ class Renderer {
 	static Renderable** renderables;
 	static int currentIndex;
 	static bool inScene;
-	static float fadeInAlpha;
 
 public:
+
+	static glm::vec3 lightPos;
+	static glm::vec3 lightColor;
+	static float ambientStrength;
+
+
+
 	Renderer() = delete;
 
 	static void init(Camera* camera);
@@ -24,12 +30,11 @@ public:
 	static void submitMatrices(const std::vector<glm::mat4>& m);
 	static void submit(Renderable* r);
 
-	static void setFadeInAlpha(float alpha);
 
 	static void beginScene();
 	static void clear();
 	static void render();
-	static void renderModelsWithMatrices(bool fade = false, float alpha = 1.0f);
+	static void renderModelsWithMatrices(float alpha = 1.0f);
 	static void flush();
 	static void endScene();
 

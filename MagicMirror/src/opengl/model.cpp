@@ -16,8 +16,9 @@ Model::Model(std::vector<Vertex> verteces, std::vector<uint32_t> indeces, Shader
 }
 
 
-Model::Model(std::vector<Vertex> verteces, std::vector<uint32_t> indeces, const std::string& texFile, Shader* shader, int position)
-	: vb(verteces), ib(indeces), tex(new Texture(texFile)), shader(shader), position(position) {
+Model::Model(std::vector<Vertex> verteces, std::vector<uint32_t> indeces, const std::string& texFile, Shader* shader, 
+			const Material& material, int position)
+	: vb(verteces), ib(indeces), tex(new Texture(texFile)), shader(shader), material(material),  position(position) {
 
 }
 
@@ -53,6 +54,8 @@ void Model::bindWithMatrix(const glm::mat4& mvp, const glm::mat4& model) const {
 	vb.bind();
 	ib.bind();
 	tex->bind();
+
+	material.bind(shader);
 }
 
 
@@ -92,4 +95,8 @@ int Model::getCount() const {
 
 Shader* Model::getShader() const {
 	return shader;
+}
+
+Material* Model::getMaterial() const {
+	return const_cast<Material*>(&material);
 }
