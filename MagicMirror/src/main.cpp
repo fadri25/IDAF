@@ -125,17 +125,11 @@ void keyFunc(GLFWwindow* window, int key, int scan, int action, int mods) {
 				inCycle = false;
 				startFade(1);
 				elapsedTime = 0.0f;
-				//currentModel++;
-				//if (currentModel >= models.size()) currentModel = 0;
-				//model = models[currentModel];
 			}
 			else if (key == GLFW_KEY_P) {
 				inCycle = false;
 				startFade(-1);
 				elapsedTime = 0.0f;
-				//currentModel--;
-				//if (currentModel <= -1) currentModel = models.size() -1;
-				//model = models[currentModel];
 			}
 			else if (key == GLFW_KEY_C) {
 				if (inCycle) {
@@ -528,7 +522,6 @@ int main() {
 			glm::mat4 m(1.0f);
 			m = glm::scale(m, { scale, scale, scale });
 			m = glm::translate(m, translation);
-			//m = glm::rotate(m, roll, { 0.0f, 0.0f, 1.0f });
 			m = glm::rotate(m, yaw, { 0.0f, 1.0f, 0.0f });
 			matrices.push_back(m);
 			
@@ -540,7 +533,6 @@ int main() {
 				glm::mat4 m2(1.0f);
 				m2 = glm::scale(m2, { scale, scale, scale });
 				m2 = glm::translate(m2, translation2);
-				//m2 = glm::rotate(m2, roll, { 0.0f, 0.0f, 1.0f });
 				m2 = glm::rotate(m2, yaw, { 0.0f, 1.0f, 0.0f });
 				secondaryMatrices.push_back(m2);
 			}
@@ -550,18 +542,17 @@ int main() {
 		// Daten an Renderer übergeben und Drawcall ausführen
 		Renderer::clear();
 	
-		if (debug) {
-			if (tex)
-				delete tex;
+		if (tex)
+			delete tex;
 
-			tex = Texture::createTextureFromData(frameWidth, frameHeight, GL_BGR, frame.data);
-			quad.setTexture(tex);
+		tex = Texture::createTextureFromData(frameWidth, frameHeight, GL_BGR, frame.data);
+		quad.setTexture(tex);
 
-			Renderer::beginScene();
-			Renderer::submit(&quad);
-			Renderer::render();
-			Renderer::endScene();
-		}
+		Renderer::beginScene();
+		Renderer::submit(&quad);
+		Renderer::render();
+		Renderer::endScene();
+
 
 		Renderer::beginScene();
 		Renderer::submitMatrices(matrices);
