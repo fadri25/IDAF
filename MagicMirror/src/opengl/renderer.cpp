@@ -3,7 +3,11 @@
 #include <iostream>
 
 #include "includegl.h"
-
+#include <mat3x3.hpp>
+#include <gtx/transform.hpp>
+#include <gtc/matrix_transform.hpp>
+#include "model.h"
+#include "quad.h"
 
 Camera* Renderer::cam;
 DeltaTime* Renderer::delta = nullptr;
@@ -18,14 +22,17 @@ bool Renderer::inScene = false;
 
 glm::vec3 Renderer::lightPos = glm::vec3(0.0f, 0.0f, -0.5f);
 glm::vec3 Renderer::lightColor = glm::vec3(1.0f);
-glm::vec3 Renderer::discoLightColor = glm::vec3(1.0f);
+glm::vec3 Renderer::lightColor2 = glm::vec3(1.0f);
 float Renderer::ambientStrength = 0.4f;
-bool Renderer::discoMode = false;
+bool Renderer::deamon = false;
 float Renderer::elapsedTime = 0.0f;
 
-const float Renderer::DISCO_DURATION = 0.05f;
-const float Renderer::DISCO_STEP = 360.0f * DISCO_DURATION;
+CubeMap* Renderer::cubeMap = nullptr;
+const float Renderer::DURATION = 0.05f;
+const float Renderer::STEP = 360.0f * DURATION;
 float Renderer::angle = 0.0f;
+
+Framebuffer* Renderer::frameBuffer = nullptr;
 
 
 
@@ -34,11 +41,13 @@ void Renderer::init(Camera* camera, DeltaTime* d) {
 	cam = camera;
 	delta = d;
 	renderables = new Renderable *[MAX_MODELS];
+	frameBuffer = new Framebuffer();
 }
 
 // Arbeitsspeicher freigeben
 void Renderer::terminate() {
 	delete[] renderables;
+	delete frameBuffer;
 }
 
 // Fügt eine Liste  von Transformationsmatrizen die Liste des Renderers ein
@@ -79,23 +88,41 @@ void Renderer::clear() {
 
 
 // Macht für jedes Modell einen draw call an den Grafikprozessor
-void Renderer::render() {
+void Renderer::render(bool reflection) {
 	if (!inScene) {
 		return;
 	}
 
 
-	if (discoMode)
-		discoDiscoPartyParty();
-
-	glm::mat4 pv = cam->getViewProjection();
+	glm::mat4 mvp;
 	for (int i = 0; i < currentIndex; i++) {
-		renderables[i]->bind(pv);
+
+		renderables[i]->bindWithMatrix();
+
 		Shader* shader = renderables[i]->getShader();
-		shader->setFloat("alpga", 1.0f);
-		setShaderUniforms(shader);
+		
+		if (reflection && cubeMap) {
+			glm::mat4 rot = glm::mat4(1.0f);
+			rot = glm::rotate(rot, ((Model*)renderables[i])->getAngle(), { 0.0f, 1.0f, 0.0f });
+
+			glm::mat4 mdl = glm::mat4(glm::mat3(renderables[i]->getTransform()));
+			
+			shader->setUniformMat4("rot", rot);
+			shader->setUniformMat4("model", mdl);
+			cubeMap->bind(1);
+		}
+		else {
+			shader->setUniformMat4("model", renderables[i]->getTransform());
+		}
+		
+		mvp = cam->getViewProjection() * renderables[i]->getTransform();
+		shader->setUniformMat4("mvp", mvp);
+		shader->setFloat("alpha", 1.0f);
+		setShaderUniforms(shader, reflection ? 1.0f : 0.0f);
 		glDrawElements(GL_TRIANGLES, renderables[i]->getCount(), GL_UNSIGNED_INT, nullptr);
+		
 	}
+	flush();
 }
 
 // Macht für jedes Modell einen draw call für jede Transformationsmatrix in @static matrices
@@ -104,17 +131,16 @@ void Renderer::renderModelsWithMatrices(float alpha) {
 		return;
 	}
 
-	if (discoMode)
-		discoDiscoPartyParty();
-
 
 	glm::mat4 pv = cam->getViewProjection();
 	for (int i = 0; i < matrices.size(); i++) {
 		glm::mat4 mvp = pv * matrices[i];
 
 		for (int j = 0; j < currentIndex; j++) {
-			renderables[j]->bindWithMatrix(mvp, matrices[i]);
+			renderables[j]->bindWithMatrix();
 			Shader* shader = renderables[j]->getShader();
+			shader->setUniformMat4("mvp", mvp);
+			shader->setUniformMat4("model", matrices[i]);
 			shader->setFloat3("cameraPos", cam->getPosition());
 			shader->setFloat("alpha", alpha);
 			setShaderUniforms(shader);
@@ -122,6 +148,8 @@ void Renderer::renderModelsWithMatrices(float alpha) {
 			glDrawElements(GL_TRIANGLES, renderables[j]->getCount(), GL_UNSIGNED_INT, nullptr);
 		}
 	}
+
+	flush();
 }
 
 
@@ -144,44 +172,56 @@ void Renderer::endScene() {
 
 
 
-void Renderer::getReadyToParty() {
-	discoMode = true;
+void Renderer::bar() {
+	deamon = true;
 	elapsedTime = 0.0f;
 }
 
-void Renderer::crashParty() {
-	discoMode = false;
+void Renderer::emply() {
+	deamon = false;
 }
 
-bool Renderer::inDisco() {
-	return discoMode;
+bool Renderer::isDaemon() {
+	return deamon;
 }
+
+void Renderer::setCubeMap(CubeMap* cm) {
+	cubeMap = cm;
+}
+
 
 
 // Übergibt Werte an Shader @arg shader
-void Renderer::setShaderUniforms(Shader* shader) {
-	if (discoMode) {
-		shader->setFloat3("lightColor", discoLightColor);
+void Renderer::setShaderUniforms(Shader* shader, float ambient) {
+	if (deamon) {
+		shader->setFloat3("lightColor", lightColor2);
+
 	}
 	else {
 		shader->setFloat3("lightColor", lightColor);
 	}
+
 	shader->setFloat3("lightPos", lightPos);
-	shader->setFloat("ambientStrength", ambientStrength);
+
+	if (ambient == 0.0f) {
+		shader->setFloat("ambientStrength", ambientStrength);
+	}
+	else {
+		shader->setFloat("ambientStrength", ambient);
+	}
 }
 
-// Disco Mode XD
-void Renderer::discoDiscoPartyParty() {
+
+void Renderer::foo() {
 	elapsedTime += delta->getDelta();
 
-	discoLightColor.x = sinf(angle);
-	discoLightColor.y = sinf(angle + 30.0f);
-	discoLightColor.z = sinf(angle + 60.0f);
+	lightColor2.x = (sinf(angle) + 2) * 0.5f ;
+	lightColor2.y = (sinf(angle + 30.0f) + 2) * 0.5f;
+	lightColor2.z = (sinf(angle + 60.0f) + 2) * 0.5f;
 
-	printf("disco: %f %f %f\n", discoLightColor.x, discoLightColor.y, discoLightColor.z);
 
-	if (elapsedTime >= DISCO_DURATION) {
-		angle += DISCO_STEP;
+	if (elapsedTime >= DURATION) {
+		angle += STEP;
 		elapsedTime = 0.0f;
 	}
 

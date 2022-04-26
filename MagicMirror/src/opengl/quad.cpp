@@ -21,10 +21,10 @@ Quad::Quad(float w, float h, Texture* tex, Shader* shader) : w(w), h(h), tex(tex
 	vertices.reserve(4);
 	indices.reserve(6);
 
-	vertices.emplace_back(Vertex({ -w, -h, 0.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f }));
-	vertices.emplace_back(Vertex({ -w,  h, 0.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f }));
-	vertices.emplace_back(Vertex({  w,  h, 0.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 0.0f }));
-	vertices.emplace_back(Vertex({  w, -h, 0.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f }));
+	vertices.emplace_back(Vertex({ -w, -h, 0.0f }, { 0.0f, 0.0f, -1.0f }, { 0.0f, 1.0f }));
+	vertices.emplace_back(Vertex({ -w,  h, 0.0f }, { 0.0f, 0.0f, -1.0f }, { 0.0f, 0.0f }));
+	vertices.emplace_back(Vertex({  w,  h, 0.0f }, { 0.0f, 0.0f, -1.0f }, { 1.0f, 0.0f }));
+	vertices.emplace_back(Vertex({  w, -h, 0.0f }, { 0.0f, 0.0f, -1.0f }, { 1.0f, 1.0f }));
 
 	indices.emplace_back(0);
 	indices.emplace_back(2);
@@ -39,7 +39,8 @@ Quad::Quad(float w, float h, Texture* tex, Shader* shader) : w(w), h(h), tex(tex
 }
 
 Quad::~Quad() {
-
+	if (tex)
+		delete tex;
 }
 
 
@@ -47,9 +48,8 @@ Quad::~Quad() {
 // Wählt Shader, Vertexarray, Vertexbuffer, Indexbuffer, 
 // Transformationsmatrix und Textur als aktive Daten für Shaderprogramm @memeber shader aus
 void Quad::bind(const glm::mat4& projectionView) const {
-	glm::mat4 mvp = projectionView * model;
 	shader->bind();
-	shader->setUniformMat4("mvp", mvp);
+	
 	vb.bind();
 	ib.bind();
 	
@@ -59,7 +59,15 @@ void Quad::bind(const glm::mat4& projectionView) const {
 }
 
 // Wird nie aufgerufen. Implementier nur damit es konform ist mit @class Renderable
-void Quad::bindWithMatrix(const glm::mat4& mvp, const glm::mat4& model) const {
+void Quad::bindWithMatrix(const glm::mat4* mvp, const glm::mat4* model) const {
+	shader->bind();
+
+	vb.bind();
+	ib.bind();
+
+	if (tex)
+		tex->bind();
+
 }
 
 
@@ -100,4 +108,10 @@ Material* Quad::getMaterial() const {
 void Quad::setShader(Shader* shader) {
 	this->shader = shader;
 }
+
+glm::mat4 Quad::getTransform() const {
+	return model;
+}
+
+
 

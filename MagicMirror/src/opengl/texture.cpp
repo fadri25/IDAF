@@ -64,11 +64,20 @@ void Texture::bind(int index) const {
 
 
 
+// Initalisierung der Variabeln
 void Texture::set(uint32_t id, int w, int h) {
 	this->id = id;
 	this->w = w;
 	this->h = h;
 }
+
+// Schreibt die datem @arg data in dem Farbformat @arg format in die Textur
+void Texture::write(unsigned char* data, int w, int h, int format) {
+	glBindTexture(GL_TEXTURE_2D, id);
+	GL_CALL(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, format, GL_UNSIGNED_BYTE, data));
+	glBindTexture(GL_TEXTURE_2D, 0);
+}
+
 
 
 // Erstellt eine Textur aus den Pixeldaten von @arg data
@@ -78,9 +87,9 @@ Texture* Texture::createTextureFromData(int w, int h, int format, const unsigned
 
 	GL_CALL(glGenTextures(1, &t));
 	GL_CALL(glBindTexture(GL_TEXTURE_2D, t));
-	if (data) {
-		GL_CALL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, format, GL_UNSIGNED_BYTE, data));
-	}
+	
+	GL_CALL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, format, GL_UNSIGNED_BYTE, data));
+	
 	GL_CALL(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
 	GL_CALL(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
 	GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));

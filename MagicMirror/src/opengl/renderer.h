@@ -2,6 +2,8 @@
 #include "camera.h"
 #include "renderable.h"
 #include "../deltatime.h"
+#include "cubemap.h"
+#include "framebuffer.h"
 
 #include <vector>
 
@@ -16,18 +18,21 @@ class Renderer {
 	static int currentIndex;
 	static bool inScene;
 	
-	static bool discoMode;
+	static CubeMap* cubeMap;
+	static bool deamon;
 	static float elapsedTime;
-	const static float DISCO_DURATION;
-	const static float DISCO_STEP;
+	const static float DURATION;
+	const static float STEP;
 	static float angle;
+
+	static Framebuffer* frameBuffer;
 
 
 public:
 
 	static glm::vec3 lightPos;
 	static glm::vec3 lightColor;
-	static glm::vec3 discoLightColor;
+	static glm::vec3 lightColor2;
 	static float ambientStrength;
 
 
@@ -42,17 +47,18 @@ public:
 
 	static void beginScene();
 	static void clear();
-	static void render();
+	static void render(bool reflection = false);
 	static void renderModelsWithMatrices(float alpha = 1.0f);
 	static void flush();
 	static void endScene();
 
-	static void getReadyToParty();
-	static void crashParty();
-	static bool inDisco();
+	static void bar();
+	static void foo();
+	static void emply();
+	static bool isDaemon();
 
+	static void setCubeMap(CubeMap* cm);
 private:
-	static void setShaderUniforms(Shader* shader);
-	static void discoDiscoPartyParty();
+	static void setShaderUniforms(Shader* shader, float ambient = 0.0f);
 
 };

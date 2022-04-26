@@ -17,9 +17,6 @@ void DeltaTime::update() {
 	now = std::chrono::steady_clock::now();
 	delta += std::chrono::duration<double, std::milli>(now - last).count() / 1000.0;
 	last = now;
-	/*now = std::clock();
-	delta += (now - last) / 1000.0;
-	last = now;*/
 }
 
 // Gibt aktuelle Deltazeit an aufrufer zurück

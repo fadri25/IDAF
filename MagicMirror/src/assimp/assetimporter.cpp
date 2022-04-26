@@ -75,6 +75,7 @@ namespace assetimporter {
 			float shininess;
 			float specularStrength;
 			float roughness;
+			float metallic;
 
 			aiGetMaterialColor(mat, AI_MATKEY_COLOR_SPECULAR, &specular);
 			aiGetMaterialColor(mat, AI_MATKEY_COLOR_DIFFUSE, &diffuse);
@@ -82,13 +83,13 @@ namespace assetimporter {
 			aiGetMaterialFloat(mat, AI_MATKEY_SHININESS, &shininess);
 			aiGetMaterialFloat(mat, AI_MATKEY_SPECULAR_FACTOR, &specularStrength);
 			aiGetMaterialFloat(mat, AI_MATKEY_ROUGHNESS_FACTOR, &roughness);
-
+			aiGetMaterialFloat(mat, AI_MATKEY_METALLIC_FACTOR, &metallic);
 
 			material = Material(
 				{ specular.r, specular.g, specular.b, shininess },
 				{ diffuse.r, diffuse.g, diffuse.b, diffuse.a },
 				{ ambient.r, ambient.g, ambient.b, ambient.a },
-				roughness, specularStrength
+				roughness, specularStrength, metallic
 			);
 
 			// Scheitelpunktinformationen laden
@@ -99,7 +100,6 @@ namespace assetimporter {
 				
 				glm::vec2 uv(0.0f);
 				if (mesh->mTextureCoords[0]) {
-					// Has z component. Figure out for what
 					aiVector3D texCoords = mesh->mTextureCoords[0][j];
 					uv.x = texCoords.x;
 					uv.y = texCoords.y;
@@ -108,7 +108,7 @@ namespace assetimporter {
 				vertices.push_back(
 					Vertex(
 						glm::vec3(pos.x, pos.y, pos.z), 
-						glm::vec3(normal.x, normal.y, normal.y),
+						glm::vec3(normal.x, normal.y, normal.z),
 						uv)
 				);
 
@@ -133,12 +133,8 @@ namespace assetimporter {
 
 				std::vector<Texture> diffuseMap = loadTextures(ai_mat, aiTextureType_SPECULAR, "diffuse_tex");
 				std::vector<Texture> specularMap = loadTextures(ai_mat, aiTextureType_SPECULAR, "specular_tex");
-
-				//textures.insert(textures.end(), diffuseMap.begin(), diffuseMap.end());
-				//textures.insert(textures.end(), specularMap.begin(), specularMap.end());
-
 			}
-
+			
 
 			for (uint32_t j = 0; j < scene->mNumMaterials; j++) {
 				const aiMaterial* pMaterial = scene->mMaterials[j];
@@ -157,7 +153,7 @@ namespace assetimporter {
 
 		}
 
-		// Belegten Arbeitsspeicher freigeben
+		// Arbeitsspeicher freigeben
 		aiReleaseImport(scene);
 	}
 

@@ -25,16 +25,16 @@ Window::Window(const char* title, int x, int y, int w, int h) : x(x), y(y), w(w)
 		return;
 	}
 
-	glfwWindowHint(GLFW_DECORATED, NULL);
+	//glfwWindowHint(GLFW_DECORATED, NULL);
 
 	GLFWmonitor* monitor = glfwGetPrimaryMonitor();
-	w = glfwGetVideoMode(monitor)->width;
-	h = glfwGetVideoMode(monitor)->height;
+	//w = glfwGetVideoMode(monitor)->width;
+	//h = glfwGetVideoMode(monitor)->height;
 
 	window = glfwCreateWindow(w, h, title, nullptr, nullptr);
 	glfwMakeContextCurrent(window);
 	
-
+	glfwSetWindowPos(window, 200, 200);
 	if (glewInit() != GLEW_OK) {
 		printf("failed to load glew!\n");
 		__debugbreak();

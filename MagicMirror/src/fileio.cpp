@@ -64,7 +64,7 @@ void tokenize(const std::string& s, std::vector<std::string>& dst, const char de
 	}
 }
 
-// Liest Einstellungswerte aus Datei
+// Lädt Einstellungswerte aus Datei
 void loadApplicationSettings(const std::string& file, float* cycleDuration, float* fadeDuration) {
 
 	std::vector<std::string> list;

@@ -17,6 +17,7 @@
 #include "opengl/renderer.h"
 #include "opengl/framebuffer.h"
 #include "opengl/quad.h"
+#include "opengl/cubemap.h"
 
 #include <opencv2/opencv.hpp>
 #include "opencv2/objdetect.hpp"
@@ -33,6 +34,7 @@
 #include "face.h"
 #include "eye.h"
 
+#include <math.h>
 
 
 #define LOG(x) printf(#x + "\n")
@@ -48,10 +50,15 @@ int frames = 0;
 
 Model* model = nullptr;
 Quad* quad = nullptr;
+Model* model2 = nullptr;
+CubeMap* cubeMap = nullptr;
+int sequence = 0;
+
 Camera* camera;
+
 Shader* shader = nullptr;
-Shader* fadeShader = nullptr;
 Shader* flatShader = nullptr;
+Shader* reflectionShader = nullptr;
 
 std::vector<Model*> models;
 int currentModel = 0;
@@ -73,24 +80,25 @@ int midX = 0;
 int midY = 0;
 
 void startFade(int increment);
-void isItTimeToParty();
+void notify();
 
+// Erkennt Input und führt die gewünschte Funktionen für die Taster aus, und Funktionen für debuggin Zwecke auf der Tastatur
 void keyFunc(GLFWwindow* window, int key, int scan, int action, int mods) {
 
-	if (action == GLFW_PRESS /* || action == GLFW_REPEAT*/) {
+	if (action == GLFW_PRESS) {
 		if (debug) {
 			if (key == GLFW_KEY_A) {
-				model->rotate({ 0.0f, 0.9f, 0.0f }, -3.141592f / 64.0f);
+				model->rotate({ 0.0f, 0.9f, 0.0f }, -M_PI / 64.0f);
 			}
 			else if (key == GLFW_KEY_D) {
-				model->rotate({ 0.0f, 1.0f, 0.0f }, 3.141592f / 64.0f);
+				model->rotate({ 0.0f, 1.0f, 0.0f }, M_PI / 64.0f);
 			}
 
 			if (key == GLFW_KEY_W) {
-				model->rotate({ 1.0f, 0.0f, 0.0f }, 3.141592f / 64.0f);
+				model->rotate({ 1.0f, 0.0f, 0.0f }, M_PI / 64.0f);
 			}
 			else if (key == GLFW_KEY_S) {
-				model->rotate({ 1.0f, 0.0f, 0.0f }, -3.141592f / 64.0f);
+				model->rotate({ 1.0f, 0.0f, 0.0f }, -M_PI / 64.0f);
 			}
 
 			if (key == GLFW_KEY_DOWN) {
@@ -134,18 +142,18 @@ void keyFunc(GLFWwindow* window, int key, int scan, int action, int mods) {
 				startFade(1);
 				elapsedTime = 0.0f;
 				keyOnePressed = true;
-				isItTimeToParty();
+				notify();
 			}
 			else if (key == GLFW_KEY_P) {
 				inCycle = false;
 				startFade(-1);
 				elapsedTime = 0.0f;
 				keyTwoPressed = true;
-				isItTimeToParty();
+				notify();
 			}
 			else if (key == GLFW_KEY_C) {
 				keyThreePressed = true;
-				isItTimeToParty();
+				notify();
 
 				if (inCycle) {
 					return;
@@ -158,15 +166,15 @@ void keyFunc(GLFWwindow* window, int key, int scan, int action, int mods) {
 		else {
 			if (key == GLFW_KEY_N) {
 				keyOnePressed = true;
-				isItTimeToParty();
+				notify();
 			}
 			else if (key == GLFW_KEY_P) {
 				keyTwoPressed = true;
-				isItTimeToParty();
+				notify();
 			}
 			else if (key == GLFW_KEY_C) {
 				keyThreePressed = true;
-				isItTimeToParty();
+				notify();
 			}
 		}
 
@@ -195,15 +203,17 @@ void keyFunc(GLFWwindow* window, int key, int scan, int action, int mods) {
 
 }
 
-void isItTimeToParty() {
+void notify() {
 	if (keyOnePressed && keyTwoPressed && keyThreePressed) {
-		if (!Renderer::inDisco()) {
-			Renderer::getReadyToParty();
+		if (!Renderer::isDaemon()) {
+			Renderer::bar();
 			quad->setShader(shader);
+			sequence = 1;
 		}
 		else {
-			Renderer::crashParty();
+			Renderer::emply();
 			quad->setShader(flatShader);
+			sequence = 2;
 		}
 	}
 }
@@ -213,34 +223,42 @@ void isItTimeToParty() {
 // Lädt alle Modelle
 void loadModels(Shader* shader) {
 	std::string dir = "res/models/";
-	const char* modelListFile = "models.txt";
 
-	std::vector<std::string> modelList;
-	readFileLineByLine(dir + modelListFile, modelList);
+	std::vector<std::string> files;
+	readFileLineByLine(dir + "models.txt", files);
 	
 
-	models.reserve(modelList.size());
+	models.reserve(files.size());
 
-	for (int i = 0; i < modelList.size(); i++) {
+	for (int i = 0; i < files.size(); i++) {
 
 		std::vector<std::string> info;
-		readFileLineByLine(dir + modelList[i] + "/info.txt", info);
-		int position = std::stoi(info[0]);
+		readFileLineByLine(dir + files[i] + "/info.txt", info);
+		
+		int position = info.size() > 0 ? std::stof(info[0]) : Model::Position::NONE;
 
 		std::vector<Vertex> vertices;
 		std::vector<uint32_t> indices;
+		std::vector<std::string> textures;
 		Material material;
 
-		std::string modelDir = dir + modelList[i] + "/";
-		std::string modelFile = modelDir + modelList[i] + ".obj";
-		std::vector<std::string> textures;
-		assetimporter::loadModel(modelDir, modelList[i] + ".obj", vertices, indices, textures, material);
+		std::string modelDir = dir + files[i] + "/";
+		assetimporter::loadModel(modelDir, files[i] + ".obj", vertices, indices, textures, material);
 		models.emplace_back(new Model(vertices, indices, textures[0], shader, material, position));
 	}
 
+	std::vector<Vertex> vertices;
+	std::vector<uint32_t> indices;
+	std::vector<std::string> textures;
+	Material material;
+
+	assetimporter::loadModel("res/models/discoball/", "discoball.obj", vertices, indices, textures, material);
+	material.metallic = 1.0f;
+	material.specularStrength = 1.0f;
+	model2 = new Model(vertices, indices, textures[0], reflectionShader, material, Model::Position::NONE);
+	model2->translate({0.0f, 6.0f, 2.0f});
+
 }
-
-
 
 
 // Wechsel zu dem nächsten 3D-Modell
@@ -323,20 +341,41 @@ void terminate() {
 	}
 
 	delete quad;
+	delete cubeMap;
+	delete model2;
 
 	delete shader;
-	delete fadeShader;
+	delete reflectionShader;
 	delete flatShader;
+
 }
 
 // Einstiegspunkt des Programmes
 int main() {
 
 	Window window("GL_Window", 200, 200, 1920, 1080);
-	camera = new Camera(60.f, 1920.0f / 1080.0f, 0.01f, 1000.0f);
+	camera = new Camera(60.0f, 1920.0f / 1080.0f, 0.01f, 1000.0f);
 	window.setKeyFunc(keyFunc);
+	
 	shader = new Shader("res/shaders/shader");
 	flatShader = new Shader("res/shaders/flatshader");
+	reflectionShader = new Shader("res/shaders/cubemapshader");
+
+	{
+		std::string dir = "res/cubemap/";
+		const std::string* files = new std::string[6] {
+			dir + "right.png",
+			dir + "left.png",
+			dir + "top.png",
+			dir + "bottom.png",
+			dir + "front.png",
+			dir + "back.png"
+
+		};
+
+		cubeMap = new CubeMap(files);
+		delete[] files;
+	}
 
 	Renderer::init(camera, &delta);
 
@@ -378,7 +417,8 @@ int main() {
 	quad = new Quad(1.0f * camera->getAspectRatio(), 1.0f, flatShader);
 	quad->translate({ 0.0f, 0.0f, -10.0f });
 	quad->scale({ 11.55f, 11.55f, 0.0f }); // 8.7f
-	Texture* tex = nullptr;
+	Texture* tex = Texture::createTextureFromData(frameWidth, frameHeight, GL_RGBA, nullptr);
+	quad->setTexture(tex);
 
 	// Neurale Netzwerke für die Gesichts- & Augenerkennung laden
 	cv::CascadeClassifier faceCascade;
@@ -409,12 +449,14 @@ int main() {
 		cap >> frame;
 		if (frame.empty()) {
 			printf("empty frame");
+			__debugbreak();
 			continue;
 		}
 
 		// Bild an der Y-Achse Spiegeln
 		cv::flip(frame, frame, 1);
 	
+
 		// Logik für Transparenzübergang und Auto-wechseltimer
 		float fadeInAlpha = 0.0f;
 		if (inFade) {
@@ -590,32 +632,62 @@ int main() {
 		}
 
 
+		// Textur für Spiegelbild updaten
+		tex->write(frame.data, frameWidth, frameHeight, GL_BGR);
+
 		// Daten an Renderer übergeben und Drawcall ausführen
 		Renderer::clear();
-	
-		if (tex)
-			delete tex;
-
-		tex = Texture::createTextureFromData(frameWidth, frameHeight, GL_BGR, frame.data);
-		quad->setTexture(tex);
-
 		Renderer::beginScene();
+		
+		if (Renderer::isDaemon()) {
+			Renderer::foo();
+		}
+
 		Renderer::submit(quad);
 		Renderer::render();
-		Renderer::endScene();
 
+	
+		switch (sequence) {
+			case 1: {
+				glm::vec4 pos = camera->getViewProjection() * model2->getTransform() * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+				if (pos.y > 5.5f) {
+					model2->translate({ 0.0f, -0.5f * delta.getDelta(), 0.0f});
+				}
+				else {
+					sequence = 0;
+				}
+				break;
+			}
+			case 2: {
+				glm::vec4 pos = camera->getViewProjection() * model2->getTransform() * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+				if (pos.y < 10.0f) {
+					model2->translate({ 0.0f, 0.5f * delta.getDelta(), 0.0f });
+				}
+				else {
+					sequence = 0;
+				}
+				break;
+			}
+		}
 
-		Renderer::beginScene();
+		if (Renderer::isDaemon() || sequence != 0) {
+			Renderer::setCubeMap(cubeMap);
+			model2->rotate({0.0f, 1.0f, 0.0f}, M_PI * 0.1f * delta.getDelta());
+			Renderer::submit(model2);
+			Renderer::render(true);
+			Renderer::setCubeMap(nullptr);
+		}
+
+		
 		Renderer::submitMatrices(matrices);
 		Renderer::submit(model);
 		
 		if (inFade) {
 			Renderer::renderModelsWithMatrices(1.0f - fadeInAlpha);
-			Renderer::flush();
 
 			Renderer::submitMatrices(secondaryMatrices);
 			Model* m = models[nextModel];
-			Renderer::submit((Renderable*)m);
+			Renderer::submit(dynamic_cast<Renderable*>(models[nextModel]));
 			Renderer::renderModelsWithMatrices(fadeInAlpha);
 		}
 		else {
@@ -623,7 +695,6 @@ int main() {
 		}
 		
 		Renderer::endScene();
-		Renderer::flush();
 		frames++;
 		
 
@@ -633,6 +704,7 @@ int main() {
 	
 
 		window.swapBuffers();
+
 
 		if (window.shouldClose()) {
 			break;

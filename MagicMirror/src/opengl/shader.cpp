@@ -123,7 +123,7 @@ void Shader::logShaderInfo(uint32_t shader, const std::string src, int type) {
 	switch (type) {
 		case GL_VERTEX_SHADER: printf("failed to compile vertex shader\n"); break;
 	}
-	printf("source code:\n%s\n", src);
+	printf("source code:\n%s\n", src.c_str());
 	printf("info log:\n%s\n", buffer);
 	delete[] buffer;
 	__debugbreak();

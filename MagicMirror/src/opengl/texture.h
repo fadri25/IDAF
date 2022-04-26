@@ -6,6 +6,7 @@
 // Repräsentiert eine Textur, welche sich in dem Arbeitsspeicher der Grafikkarte befindet
 class Texture {
 
+protected:
 	uint32_t id;
 	int w, h;
 
@@ -15,9 +16,11 @@ public:
 	Texture(const Texture& t);
 	~Texture();
 
-	void bind(int index = 0) const;
-
+	virtual void bind(int index = 0) const;
+	
 	void set(uint32_t id, int w, int h);
+	void write(unsigned char* data, int w, int h,  int format);
+
 
 	inline uint32_t getID() const { return id; }
 

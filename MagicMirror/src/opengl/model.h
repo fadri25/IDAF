@@ -11,20 +11,22 @@
 
 
 // Repräsentiert ein 3D-Modell
-// Shaders dürfen nicht gelöscht werden in dem Destructor, da sich mehrere
-// modelle einen Shader teilen können
 class Model : public Renderable {
 
 public:
+
+	// Enumeratoren für Positionen
 	enum Position {
 		CENTER,
 		TOP,
 		BETWEEN_EYES,
-		CHINN
+		CHINN,
+		NONE
 	};
 
 private:
 	glm::mat4 model;
+	float angle = 0.0f;
 	Vertexbuffer vb;
 	Indexbuffer ib;
 	Texture* tex;
@@ -43,7 +45,7 @@ public:
 	~Model();
 
 	void bind(const glm::mat4& projectionView) const override;
-	void bindWithMatrix(const glm::mat4& mvp, const glm::mat4& model) const override;
+	void bindWithMatrix(const glm::mat4* mvp = nullptr, const glm::mat4* model = nullptr) const override;
 
 
 	void translate(const glm::vec3& t);
@@ -52,14 +54,16 @@ public:
 	void resetTransformationMatrix();
 
 	void setShader(Shader* s);
+	void setTexture(Texture* tex);
 
-	int getCount() const override;
-	
 	inline int getPosition() const { return position; }
 	inline Texture* getTexture() { return tex; }
+	inline float getAngle() const { return angle; }
 
+	int getCount() const override;
 	Shader* getShader() const override;
 	Material* getMaterial() const override;
+	glm::mat4 getTransform() const override;
 
 
 };

@@ -3,7 +3,7 @@
 #include <gtx/transform.hpp>
 #include <gtc/matrix_transform.hpp>
 
-
+#include <math.h>
 
 
 Model::Model() {
@@ -23,7 +23,8 @@ Model::Model(std::vector<Vertex> verteces, std::vector<uint32_t> indeces, const 
 }
 
 Model::~Model() {
-
+	if (tex)
+		delete tex;
 }
 
 
@@ -46,10 +47,13 @@ void Model::bind(const glm::mat4& projectionView) const {
 
 // Wählt Shader, Vertexarray, Vertexbuffer, Indexbuffer, 
 // und Textur  mit Transformationsmatrix @arg mvp als aktive Daten für Shaderprogramm @memeber shader aus
-void Model::bindWithMatrix(const glm::mat4& mvp, const glm::mat4& model) const {
+void Model::bindWithMatrix(const glm::mat4* mvp, const glm::mat4* model) const {
 	shader->bind();
-	shader->setUniformMat4("mvp", mvp);
-	shader->setUniformMat4("model", model);
+
+	if (model) {
+		shader->setUniformMat4("mvp", *mvp);
+		shader->setUniformMat4("model", *model);
+	}
 
 	vb.bind();
 	ib.bind();
@@ -67,6 +71,16 @@ void Model::translate(const glm::vec3& t) {
 
 // Rotation um die Achsen @arg axis um den Winkel @arg angle
 void Model::rotate(const glm::vec3& axis, float angle) {
+	if (axis.y != 0.0f) {
+		this->angle += angle;
+		if (this->angle > (float) (M_PI * 2.0f)) {
+			this->angle -= M_PI * 2.0f;
+		}
+		else if (this->angle < -((float)(M_PI * 2.0f))) {
+			this->angle += M_PI * 2.0f;
+		}
+	}
+
 	model = glm::rotate(model, angle, axis);
 }
 
@@ -88,6 +102,11 @@ void Model::setShader(Shader* s) {
 	shader = s;
 }
 
+void Model::setTexture(Texture* tex) {
+	this->tex = tex;
+}
+
+
 
 int Model::getCount() const { 
 	return ib.getCount(); 
@@ -99,4 +118,8 @@ Shader* Model::getShader() const {
 
 Material* Model::getMaterial() const {
 	return const_cast<Material*>(&material);
+}
+
+glm::mat4 Model::getTransform() const {
+	return model;
 }

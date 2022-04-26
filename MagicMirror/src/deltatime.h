@@ -9,8 +9,6 @@ class DeltaTime {
 	std::chrono::steady_clock::time_point last;
 	std::chrono::steady_clock::time_point now;
 
-	//std::clock_t last;
-	//std::clock_t now;
 	double delta = 0.0;
 
 public:

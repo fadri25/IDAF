@@ -1,20 +1,22 @@
 #version 450 core
 
+in vec3 f_pos;
 in vec3 f_normal;
 in vec2 f_uv;
 in vec4 fragPos;
 in float f_alpha;
 
+uniform vec3 cameraPos;
 
 layout (location = 0) uniform sampler2D tex0;
+layout (location = 1) uniform samplerCube tex1;
 
-uniform vec3 ambientColor;
-uniform vec3 diffuseColor;
-uniform vec3 specularColor;
+uniform vec4 ambientColor;
+uniform vec4 diffuseColor;
+uniform vec4 specularColor;
 
 uniform float roughness;
 uniform float specularStrength;
-uniform vec3 cameraPos;
 
 uniform vec3 lightColor;
 uniform vec3 lightPos;
@@ -22,6 +24,8 @@ uniform float ambientStrength;
 uniform float metallic;
 
 out vec4 color;
+
+
 
 
 void main(){
@@ -44,11 +48,16 @@ void main(){
 	float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
 	vec3 specular = specularStrength * spec * lightColor;  
 
-	// Pixel von Texture sampeln
-	vec4 pixelColor = texture(tex0, f_uv);
+	// Farbreflektion
+	vec3 eye = normalize(cameraPos - f_pos);
+	vec3 reflection = reflect(eye, norm);
+
+
+	// Pixel von Textur sampeln
+	color = texture(tex0, f_uv);
+	vec4 cubeColor = texture(tex1, reflection);
+	color = vec4(mix(vec3(cubeColor.xyz), vec3(color.xyz), 0.0), 1.0);
 
 	//UmgebungsLicht und Lichtreflektion auf den Pixelfarbton anwenden
-	vec3 result = (ambient + diffuse + specular) * vec3(pixelColor.xyz);
-
-	color = vec4(result, f_alpha);
+	color = vec4((ambient + diffuse + specular) * vec3(color.xyz), 1.0);
 }
