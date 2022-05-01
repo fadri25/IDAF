@@ -35,6 +35,7 @@ _CONSOLE
 GLEW_STATIC
 _CRT_SECURE_NO_WARNINGS
 GLM_FORCE_RADIANS
+_USE_MATH_DEFINES
 
 
 Application Controls:
@@ -48,10 +49,13 @@ Esc key 	- close application
 
 
 Neue Models hinzufügen:
-in Ordner res/models/models.txt den Namen mit Dateiendung des models (z.B. taene.obj)
-.obj und .mtl Datei sollten in den Ordner res/models verschoben werden
-Material datei muss im selben Ornder des models sein
-Falls Model nicht geladen werden kann (in Konsole: "dobe_....." bla bla bla):
+in Ordner res/models/models.txt den Namen ohne Dateiendung des models
+.obj und .mtl Datei sollten in dem Ordner res/models in einen eigenen Ordner
+mit dem selben Namen wie die .obj Datei verschoben werden
+Material- und Texturedateien müssen im selben Ornder wie das Model sein
+
+Falls Model nicht geladen werden kann (in Konsole: "dobe_....."):
 	in Material Datei alle Zeilen die mit "adobe" beginnen löschen
 Falls Model nicht geladen werden kann (in Konsole: cannot load image: ...):
-	Datei Pfad von texturen in Material Datei anpassen
+	Datei Pfad von texturen in Material Datei anpassen zu : 
+	[Dateiname].png (ohne Pfadelemente vor dem Dateinamen)
