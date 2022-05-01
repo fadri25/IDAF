@@ -52,7 +52,7 @@ Beispiel:
 Verweist auf ein Parameter eines Funtionaufrufes.
 Beispiel:
 	// @param x
-	void bar(x);
+	bar(x);
 
 @member:
 Verweist auf eine Variable, welche zu einer Instanz einer Klasse gehört.
