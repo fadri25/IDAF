@@ -66,8 +66,13 @@ CubeMap::CubeMap(const unsigned char* data, int width, int height) {
 	}
 }
 
+CubeMap::~CubeMap() {
+	glDeleteTextures(1, &id);
+}
+
 
 void CubeMap::bind(int i) const {
 	glActiveTexture(GL_TEXTURE0 + i);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, id);
 }
+

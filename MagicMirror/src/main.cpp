@@ -402,7 +402,6 @@ int main() {
 	midY = frameHeight / 2;
 
 
-
 	cv::Mat frame;
 
 

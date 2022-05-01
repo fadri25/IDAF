@@ -72,7 +72,7 @@ void Texture::set(uint32_t id, int w, int h) {
 }
 
 // Schreibt die datem @arg data in dem Farbformat @arg format in die Textur
-void Texture::write(unsigned char* data, int w, int h, int format) {
+void Texture::write(unsigned char* data, int w, int h, int format) const {
 	glBindTexture(GL_TEXTURE_2D, id);
 	GL_CALL(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, format, GL_UNSIGNED_BYTE, data));
 	glBindTexture(GL_TEXTURE_2D, 0);

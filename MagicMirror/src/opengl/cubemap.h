@@ -13,6 +13,7 @@ public:
 	CubeMap();
 	CubeMap(const std::string* file);
 	CubeMap(const unsigned char* data, int width, int height);
+	~CubeMap();
 
 	void bind(int i = 0) const override;
 
